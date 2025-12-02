@@ -139,6 +139,8 @@ def inventory_overview_prompt(
 ) -> List[dict]:
     """Guide the model to call the inventory_status_summary tool."""
 
+    default_device_types = "omit or pass a list such as ['ap', 'switch']"
+
     return [
         {
             "role": "system",
@@ -149,7 +151,7 @@ def inventory_overview_prompt(
             "content": (
                 "Call `inventory_status_summary` with the provided arguments and summarize totals and by-model counts.\n"
                 f"- site_id: {site_id or 'omit to use the organization or default site scope'}\n"
-                f"- device_types: {device_types or 'omit or pass a list such as [\"ap\", \"switch\"]'}"
+                f"- device_types: {device_types or default_device_types}"
             ),
         },
     ]
@@ -208,6 +210,8 @@ def client_lookup_prompt(identifier: str, site_id: Optional[str] = None) -> List
 def list_sites_prompt(country_codes: Optional[List[str]] = None) -> List[dict]:
     """Guide the model to call the list_sites tool."""
 
+    country_codes_hint = 'omit or pass an array such as ["DE", "NL"]'
+
     return [
         {
             "role": "system",
@@ -217,7 +221,7 @@ def list_sites_prompt(country_codes: Optional[List[str]] = None) -> List[dict]:
             "role": "user",
             "content": (
                 "Invoke `list_sites` with these parameters and present the sites in a short table.\n"
-                f"- country_codes: {country_codes or 'omit or pass an array such as [\"DE\", \"NL\"]'}"
+                f"- country_codes: {country_codes or country_codes_hint}"
             ),
         },
     ]
