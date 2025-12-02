@@ -64,6 +64,15 @@ Once connected (for example via Claude Desktop), you can prompt the MCP server w
 - **subscription_summary** – report subscription counts, usage, next renewal, and raw subscription details.
 - **inventory_status_summary** – report total, connected, disconnected, and in-stock device counts by model. Accepts optional `site_id` and `device_types` (e.g., `ap` or `switch`).
 
+## Prompts
+`prompts/list` will show the registered helpers you can call directly instead of crafting custom requests:
+
+- **inventory_overview_prompt** – calls `inventory_status_summary`. Inputs: optional `site_id` and `device_types` (list such as `["ap", "switch"]`).
+- **device_lookup_prompt** – calls `find_device`. Inputs: `identifier` (IP, MAC, or hostname) and optional `site_id`.
+- **client_lookup_prompt** – calls `find_client`. Inputs: `identifier` (IP, MAC, or hostname) and optional `site_id`.
+- **list_sites_prompt** – calls `list_sites`. Inputs: optional `country_codes` array (e.g., `["DE", "NL"]`).
+- **site_errors_prompt** – calls `sites_with_recent_errors`. Inputs: `minutes` window plus optional `site_ids` array or `country_codes`.
+
 ## Design notes
 - Requests are routed through a tiny Mist client wrapper that handles authentication and optional site defaults.
 - Write operations (like applying a port profile or creating a site) rely on Mist REST API PUT/POST endpoints.

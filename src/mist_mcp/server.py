@@ -130,5 +130,124 @@ def inventory_status_summary(
     return tools.inventory_status_summary(client, site_id=resolved_site, device_types=device_types)
 
 
+@mcp.prompt(
+    title="Inventory overview",
+    description="Summarize Mist device connectivity by model, optionally filtered to a site or device types.",
+)
+def inventory_overview_prompt(
+    site_id: Optional[str] = None, device_types: Optional[List[str]] = None
+) -> List[dict]:
+    """Guide the model to call the inventory_status_summary tool."""
+
+    return [
+        {
+            "role": "system",
+            "content": "Use the inventory_status_summary tool to report connected, disconnected, and in-stock counts by model.",
+        },
+        {
+            "role": "user",
+            "content": (
+                "Call `inventory_status_summary` with the provided arguments and summarize totals and by-model counts.\n"
+                f"- site_id: {site_id or 'omit to use the organization or default site scope'}\n"
+                f"- device_types: {device_types or 'omit or pass a list such as [\"ap\", \"switch\"]'}"
+            ),
+        },
+    ]
+
+
+@mcp.prompt(
+    title="Find a device",
+    description="Look up a Mist device by IP, MAC, or hostname and return matches.",
+)
+def device_lookup_prompt(identifier: str, site_id: Optional[str] = None) -> List[dict]:
+    """Guide the model to call the find_device tool."""
+
+    return [
+        {
+            "role": "system",
+            "content": "Use the find_device tool to search inventory for device details including site and model.",
+        },
+        {
+            "role": "user",
+            "content": (
+                "Invoke `find_device` with these parameters and present the resulting matches.\n"
+                f"- identifier: {identifier}\n"
+                f"- site_id: {site_id or 'omit to search the organization or default site'}"
+            ),
+        },
+    ]
+
+
+@mcp.prompt(
+    title="Find a client",
+    description="Look up a Mist client by IP, MAC, or hostname and return matches.",
+)
+def client_lookup_prompt(identifier: str, site_id: Optional[str] = None) -> List[dict]:
+    """Guide the model to call the find_client tool."""
+
+    return [
+        {
+            "role": "system",
+            "content": "Use the find_client tool to search connected or historical clients including VLAN and AP details.",
+        },
+        {
+            "role": "user",
+            "content": (
+                "Invoke `find_client` with these parameters and present the resulting matches.\n"
+                f"- identifier: {identifier}\n"
+                f"- site_id: {site_id or 'omit to search the organization or default site'}"
+            ),
+        },
+    ]
+
+
+@mcp.prompt(
+    title="List Mist sites",
+    description="List Mist sites optionally filtered by country codes.",
+)
+def list_sites_prompt(country_codes: Optional[List[str]] = None) -> List[dict]:
+    """Guide the model to call the list_sites tool."""
+
+    return [
+        {
+            "role": "system",
+            "content": "Use the list_sites tool to enumerate Mist sites and include names and IDs in the reply.",
+        },
+        {
+            "role": "user",
+            "content": (
+                "Invoke `list_sites` with these parameters and present the sites in a short table.\n"
+                f"- country_codes: {country_codes or 'omit or pass an array such as [\"DE\", \"NL\"]'}"
+            ),
+        },
+    ]
+
+
+@mcp.prompt(
+    title="Site issues",
+    description="Check for recent site alarms across specific sites or countries.",
+)
+def site_errors_prompt(
+    minutes: int = 60, site_ids: Optional[List[str]] = None, country_codes: Optional[List[str]] = None
+) -> List[dict]:
+    """Guide the model to call the sites_with_recent_errors tool."""
+
+    return [
+        {
+            "role": "system",
+            "content": "Use the sites_with_recent_errors tool to summarize active alarms for Mist sites.",
+        },
+        {
+            "role": "user",
+            "content": (
+                "Invoke `sites_with_recent_errors` with the provided filters and report alarms grouped by site.\n"
+                f"- minutes: {minutes}\n"
+                f"- site_ids: {site_ids or 'omit to rely on country_codes or default site'}\n"
+                f"- country_codes: {country_codes or 'omit to search all sites available'}"
+            ),
+        },
+    ]
+
+
 if __name__ == "__main__":
     mcp.run()
