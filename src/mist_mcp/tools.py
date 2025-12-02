@@ -1,0 +1,183 @@
+"""Tool implementations exposed via the MCP server."""
+
+from __future__ import annotations
+
+from typing import Dict, Iterable, List, Optional
+
+from .client import MistClient
+
+
+def find_device(client: MistClient, identifier: str, site_id: Optional[str] = None) -> Dict[str, List[dict]]:
+    """Find a device by IP address, MAC address, or hostname."""
+
+    matches = client.find_device_by_identifier(identifier, site_id=site_id)
+    return {"matches": matches}
+
+
+def find_client(client: MistClient, identifier: str, site_id: Optional[str] = None) -> Dict[str, List[dict]]:
+    """Find a client by IP address, MAC address, or hostname."""
+
+    matches = client.find_client_by_identifier(identifier, site_id=site_id)
+    return {"matches": matches}
+
+
+def list_sites(client: MistClient, country_codes: Optional[Iterable[str]] = None) -> Dict[str, List[dict]]:
+    """List sites filtered by country codes when provided."""
+
+    sites = client.list_sites(country_codes=country_codes)
+    return {"sites": sites}
+
+
+def site_device_counts(client: MistClient, site_id: str) -> Dict[str, Dict[str, int]]:
+    """Summarize device counts for a site by device type."""
+
+    devices = client.site_devices(site_id)
+    counts: Dict[str, int] = {}
+    for device in devices:
+        device_type = str(device.get("type", "unknown")).lower()
+        counts[device_type] = counts.get(device_type, 0) + 1
+    return {"site_id": site_id, "device_counts": counts}
+
+
+def sites_with_recent_errors(client: MistClient, site_ids: Iterable[str], minutes: int = 60) -> Dict[str, List[dict]]:
+    """Return alarms for the provided sites within the given window."""
+
+    results: List[dict] = []
+    for site_id in site_ids:
+        alarms = client.site_alarms(site_id, minutes=minutes)
+        for alarm in alarms:
+            alarm["site_id"] = site_id
+        results.extend(alarms)
+    return {"alarms": results}
+
+
+def configure_switch_port_profile(
+    client: MistClient,
+    site_id: str,
+    device_id: str,
+    port_id: str,
+    port_profile_id: str,
+) -> Dict[str, dict]:
+    """Apply a Mist port profile to a switch port."""
+
+    updated_port = client.set_switch_port_profile(
+        site_id=site_id, device_id=device_id, port_id=port_id, port_profile_id=port_profile_id
+    )
+    return {"site_id": site_id, "device_id": device_id, "port_id": port_id, "port": updated_port}
+
+
+def create_site(client: MistClient, site_data: Dict[str, object]) -> Dict[str, dict]:
+    """Create a Mist site after verifying required fields are present."""
+
+    required_fields = ["name", "country_code", "timezone", "address"]
+    missing = [field for field in required_fields if not site_data.get(field)]
+    if missing:
+        raise ValueError(f"Missing required site fields: {', '.join(missing)}")
+
+    new_site = client.create_site(site_data)
+    return {"site": new_site}
+
+
+def subscription_summary(client: MistClient) -> Dict[str, object]:
+    """Summarize organization subscriptions and return raw details."""
+
+    subscriptions = client.list_subscriptions()
+
+    def _parse_int(value: object) -> int:
+        try:
+            return int(value) if value is not None else 0
+        except (TypeError, ValueError):
+            return 0
+
+    total_available = 0
+    total_used = 0
+    renewal_candidates: List[str] = []
+    for sub in subscriptions:
+        total_available += _parse_int(sub.get("total") or sub.get("count") or sub.get("quantity"))
+        total_used += _parse_int(sub.get("used") or sub.get("assigned") or sub.get("consumed"))
+
+        for key in ("renewal_date", "renewal", "expires_on", "expiration", "expiration_date"):
+            value = sub.get(key)
+            if isinstance(value, str) and value:
+                renewal_candidates.append(value)
+                break
+
+    renewal_candidates.sort()
+    next_renewal = renewal_candidates[0] if renewal_candidates else None
+
+    summary = {
+        "total_subscriptions": len(subscriptions),
+        "total_available": total_available,
+        "total_used": total_used,
+        "next_renewal": next_renewal,
+    }
+
+    return {"summary": summary, "subscriptions": subscriptions}
+
+
+def inventory_status_summary(
+    client: MistClient,
+    site_id: Optional[str] = None,
+    device_types: Optional[Iterable[str]] = None,
+) -> Dict[str, object]:
+    """Summarize inventory connectivity by model with in-stock tracking.
+
+    Args:
+        site_id: Optional site to scope the inventory request. When omitted the
+            organization inventory is used.
+        device_types: Optional iterable of device types (for example, ``ap`` or
+            ``switch``) used to filter the response.
+
+    Returns:
+        A dictionary containing overall totals and per-model connectivity
+        breakdowns including in-stock counts (devices that have never
+        connected).
+    """
+
+    devices = client.get_inventory(site_id=site_id)
+    if device_types:
+        normalized_types = {str(value).lower() for value in device_types}
+        devices = [
+            device
+            for device in devices
+            if str(device.get("type", "")).lower() in normalized_types
+        ]
+
+    def _classify(device: dict) -> Dict[str, bool]:
+        status = str(device.get("status", "")).lower()
+        connected_flag = device.get("connected") is True or status in {"connected", "online"}
+        last_seen = device.get("last_seen") or device.get("last_seen_ts") or device.get("last_seen_epoch")
+        ever_connected = connected_flag or bool(last_seen)
+
+        if connected_flag:
+            return {"connected": True, "disconnected": False, "in_stock": False}
+        if not ever_connected:
+            return {"connected": False, "disconnected": False, "in_stock": True}
+        return {"connected": False, "disconnected": True, "in_stock": False}
+
+    overall = {"total": 0, "connected": 0, "disconnected": 0, "in_stock": 0}
+    per_model: Dict[str, Dict[str, int]] = {}
+
+    for device in devices:
+        model = str(device.get("model") or "unknown")
+        flags = _classify(device)
+
+        overall["total"] += 1
+        for key, value in flags.items():
+            if value:
+                overall[key] += 1
+
+        if model not in per_model:
+            per_model[model] = {"total": 0, "connected": 0, "disconnected": 0, "in_stock": 0}
+
+        per_model[model]["total"] += 1
+        for key, value in flags.items():
+            if value:
+                per_model[model][key] += 1
+
+    by_model = [
+        {"model": model, **counts}
+        for model, counts in sorted(per_model.items())
+    ]
+
+    return {"summary": overall, "by_model": by_model}

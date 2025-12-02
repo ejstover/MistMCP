@@ -1,0 +1,21 @@
+[project]
+name = "mist-mcp"
+version = "0.1.0"
+description = "Model Context Protocol server for Juniper Mist network automation"
+authors = [{name = ""}]
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "mcp>=0.0.8",
+    "python-dotenv>=1.0.1",
+    "requests>=2.32.3",
+]
+
+[project.optional-dependencies]
+dev = [
+    "ruff>=0.5.0",
+]
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
