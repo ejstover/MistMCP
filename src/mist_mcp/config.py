@@ -3,12 +3,19 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Optional
 
 from dotenv import load_dotenv
 import os
 
 
+# Always look for a project-level .env relative to this file so the server works
+# even when launched from a different working directory.
+load_dotenv(Path(__file__).resolve().parents[1] / ".env")
+
+# Also honor a .env in the current working directory or its parents. This is a
+# no-op if variables are already set because override=False by default.
 load_dotenv()
 
 
