@@ -9,7 +9,7 @@ Model Context Protocol (MCP) server for Juniper Mist automation. The server expo
    - `MIST_API_BASE_URL` – Mist API base URL (defaults to the public cloud)
    - `MIST_DEFAULT_SITE_ID` – optional fallback site
 2. Install dependencies: `pip install .`
-3. Run the MCP server: `python -m mist_mcp.server`
+3. Run the MCP server module (Python's `-m` flag runs `src/mist_mcp/server.py`): `python -m mist_mcp.server`
 
 ## Using with Claude
 To connect this MCP server to Claude Desktop:
