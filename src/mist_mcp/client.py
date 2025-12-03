@@ -71,11 +71,7 @@ class MistClient:
         return self._filter_devices(devices, normalized)
 
     def find_client_by_identifier(self, identifier: str, site_id: Optional[str] = None) -> List[dict]:
-        """Find clients by IP, MAC, or hostname.
-
-        The method lets Mist handle the filter when possible and then applies a local
-        fallback to ensure matches even if the remote API ignores the search query.
-        """
+        """Find clients by IP, MAC, or hostname across wired and wireless searches."""
 
         filters: Dict[str, str] = {}
         normalized = identifier.strip().lower()
@@ -87,12 +83,11 @@ class MistClient:
             filters["hostname"] = normalized
 
         if site_id:
-            path = f"/api/v1/sites/{site_id}/clients/search"
-        else:
-            path = f"/api/v1/orgs/{self.config.org_id}/clients/search"
+            filters["site_id"] = site_id
 
-        payload = self._get(path, **filters)
-        clients = payload if isinstance(payload, list) else payload.get("results", [])
+        wired = self.search_wired_clients(**filters)
+        wireless = self.search_wireless_clients(**filters)
+        clients = [*wired, *wireless]
         return self._filter_clients(clients, normalized)
 
     def list_sites(self, country_codes: Optional[Iterable[str]] = None) -> List[dict]:
@@ -113,7 +108,7 @@ class MistClient:
         The Mist API accepts a ``duration`` parameter in minutes to constrain results.
         """
 
-        payload = self._get(f"/api/v1/sites/{site_id}/alarms", duration=minutes)
+        payload = self._get(f"/api/v1/sites/{site_id}/alarms/search", duration=minutes)
         return payload if isinstance(payload, list) else payload.get("results", [])
 
     def get_switch_ports(self, site_id: str, device_id: str) -> List[dict]:
@@ -122,27 +117,82 @@ class MistClient:
         payload = self._get(f"/api/v1/sites/{site_id}/devices/{device_id}/switch_ports")
         return payload if isinstance(payload, list) else payload.get("results", [])
 
-    def set_switch_port_profile(
-        self, site_id: str, device_id: str, port_id: str, port_profile_id: str
+    def update_switch_port_config(
+        self, site_id: str, device_id: str, port_id: str, usage_id: str
     ) -> dict:
-        """Apply a port profile to a switch port."""
+        """Apply a local switch port usage to a port using the site-local endpoint."""
 
-        body = {"portconf_id": port_profile_id}
+        body = {"usage": usage_id}
         return self._put(
-            f"/api/v1/sites/{site_id}/devices/{device_id}/switch_ports/{port_id}",
+            f"/api/v1/sites/{site_id}/devices/{device_id}/switch_ports/{port_id}/local_config",
             payload=body,
         )
 
     def create_site(self, site_data: dict) -> dict:
         """Create a new Mist site with the provided metadata."""
 
-        return self._post(f"/api/v1/orgs/{self.config.org_id}/sites", payload=site_data)
+        return self._post(
+            f"/api/v1/orgs/{self.config.org_id}/sites/create", payload=site_data
+        )
 
-    def list_subscriptions(self) -> List[dict]:
-        """List subscriptions for the organization."""
+    def license_summary(self) -> List[dict]:
+        """Summarize licenses for the organization."""
 
-        payload = self._get(f"/api/v1/orgs/{self.config.org_id}/subscriptions")
+        payload = self._get(f"/api/v1/orgs/{self.config.org_id}/licenses/summary")
         return payload if isinstance(payload, list) else payload.get("results", [])
+
+    def search_wired_clients(self, **filters) -> List[dict]:
+        """Search wired clients using the dedicated Mist endpoint."""
+
+        payload = self._get(
+            f"/api/v1/orgs/{self.config.org_id}/clients/wired/search", **filters
+        )
+        return payload if isinstance(payload, list) else payload.get("results", [])
+
+    def search_wireless_clients(self, **filters) -> List[dict]:
+        """Search wireless clients using the dedicated Mist endpoint."""
+
+        payload = self._get(
+            f"/api/v1/orgs/{self.config.org_id}/clients/wireless/search", **filters
+        )
+        return payload if isinstance(payload, list) else payload.get("results", [])
+
+    def list_guest_authorizations(self) -> List[dict]:
+        """List guest authorizations across the organization."""
+
+        payload = self._get(
+            f"/api/v1/orgs/{self.config.org_id}/guests/authorizations"
+        )
+        return payload if isinstance(payload, list) else payload.get("results", [])
+
+    def list_site_networks(self, site_id: str) -> List[dict]:
+        """List derived networks for a site."""
+
+        payload = self._get(f"/api/v1/sites/{site_id}/networks/derived")
+        return payload if isinstance(payload, list) else payload.get("results", [])
+
+    def get_site_setting(self, site_id: str) -> dict:
+        """Retrieve derived site setting including port usages."""
+
+        return self._get(f"/api/v1/sites/{site_id}/setting/derived")
+
+    def acknowledge_all_site_alarms(self, site_id: str) -> dict:
+        """Acknowledge all alarms at a site."""
+
+        return self._post(f"/api/v1/sites/{site_id}/alarms/ack/all", payload={})
+
+    def acknowledge_site_alarms(self, site_id: str, alarm_ids: Iterable[str]) -> dict:
+        """Acknowledge specific alarms at a site."""
+
+        body = {"alarm_ids": list(alarm_ids)}
+        return self._post(f"/api/v1/sites/{site_id}/alarms/ack", payload=body)
+
+    def acknowledge_site_alarm(self, site_id: str, alarm_id: str) -> dict:
+        """Acknowledge a single alarm at a site."""
+
+        return self._post(
+            f"/api/v1/sites/{site_id}/alarms/{alarm_id}/ack", payload={}
+        )
 
     @staticmethod
     def _looks_like_ip(identifier: str) -> bool:
