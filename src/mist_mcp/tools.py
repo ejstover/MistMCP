@@ -60,8 +60,8 @@ def configure_switch_port_profile(
 ) -> Dict[str, dict]:
     """Apply a Mist port profile to a switch port."""
 
-    updated_port = client.set_switch_port_profile(
-        site_id=site_id, device_id=device_id, port_id=port_id, port_profile_id=port_profile_id
+    updated_port = client.update_switch_port_config(
+        site_id=site_id, device_id=device_id, port_id=port_id, usage_id=port_profile_id
     )
     return {"site_id": site_id, "device_id": device_id, "port_id": port_id, "port": updated_port}
 
@@ -81,7 +81,7 @@ def create_site(client: MistClient, site_data: Dict[str, object]) -> Dict[str, d
 def subscription_summary(client: MistClient) -> Dict[str, object]:
     """Summarize organization subscriptions and return raw details."""
 
-    subscriptions = client.list_subscriptions()
+    subscriptions = client.license_summary()
 
     def _parse_int(value: object) -> int:
         try:
@@ -113,6 +113,52 @@ def subscription_summary(client: MistClient) -> Dict[str, object]:
     }
 
     return {"summary": summary, "subscriptions": subscriptions}
+
+
+def list_guest_authorizations(client: MistClient) -> Dict[str, List[dict]]:
+    """List all guest authorizations in the organization."""
+
+    guests = client.list_guest_authorizations()
+    return {"guests": guests}
+
+
+def list_site_networks(client: MistClient, site_id: str) -> Dict[str, List[dict]]:
+    """List derived networks at a site."""
+
+    networks = client.list_site_networks(site_id)
+    return {"site_id": site_id, "networks": networks}
+
+
+def site_setting_port_usages(client: MistClient, site_id: str) -> Dict[str, object]:
+    """Return derived site settings focusing on port usages."""
+
+    setting = client.get_site_setting(site_id)
+    return {
+        "site_id": site_id,
+        "port_usages": setting.get("port_usages", []) if isinstance(setting, dict) else [],
+        "setting": setting,
+    }
+
+
+def acknowledge_all_alarms(client: MistClient, site_id: str) -> Dict[str, object]:
+    """Acknowledge all alarms at a site."""
+
+    result = client.acknowledge_all_site_alarms(site_id)
+    return {"site_id": site_id, "result": result}
+
+
+def acknowledge_alarms(client: MistClient, site_id: str, alarm_ids: Iterable[str]) -> Dict[str, object]:
+    """Acknowledge multiple alarms at a site."""
+
+    result = client.acknowledge_site_alarms(site_id, alarm_ids)
+    return {"site_id": site_id, "alarm_ids": list(alarm_ids), "result": result}
+
+
+def acknowledge_alarm(client: MistClient, site_id: str, alarm_id: str) -> Dict[str, object]:
+    """Acknowledge a single alarm at a site."""
+
+    result = client.acknowledge_site_alarm(site_id, alarm_id)
+    return {"site_id": site_id, "alarm_id": alarm_id, "result": result}
 
 
 def inventory_status_summary(

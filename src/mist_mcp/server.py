@@ -120,6 +120,73 @@ def subscription_summary() -> dict:
 
 
 @mcp.tool()
+def list_guest_authorizations() -> dict:
+    """List all guest authorizations in the organization."""
+
+    client = get_client()
+    return tools.list_guest_authorizations(client)
+
+
+@mcp.tool()
+def list_site_networks(site_id: Optional[str] = None) -> dict:
+    """List derived networks for a site."""
+
+    client = get_client()
+    resolved_site = site_id or client.config.default_site_id
+    if not resolved_site:
+        raise ValueError("site_id is required when MIST_DEFAULT_SITE_ID is not set")
+    return tools.list_site_networks(client, site_id=resolved_site)
+
+
+@mcp.tool()
+def site_port_usages(site_id: Optional[str] = None) -> dict:
+    """Return derived site port usages to help select the correct switch profile."""
+
+    client = get_client()
+    resolved_site = site_id or client.config.default_site_id
+    if not resolved_site:
+        raise ValueError("site_id is required when MIST_DEFAULT_SITE_ID is not set")
+    return tools.site_setting_port_usages(client, site_id=resolved_site)
+
+
+@mcp.tool()
+def acknowledge_all_alarms(site_id: Optional[str] = None) -> dict:
+    """Acknowledge all alarms for a site."""
+
+    client = get_client()
+    resolved_site = site_id or client.config.default_site_id
+    if not resolved_site:
+        raise ValueError("site_id is required when MIST_DEFAULT_SITE_ID is not set")
+    return tools.acknowledge_all_alarms(client, site_id=resolved_site)
+
+
+@mcp.tool()
+def acknowledge_alarms(site_id: Optional[str] = None, alarm_ids: List[str] = None) -> dict:
+    """Acknowledge specific alarms for a site."""
+
+    client = get_client()
+    resolved_site = site_id or client.config.default_site_id
+    if not resolved_site:
+        raise ValueError("site_id is required when MIST_DEFAULT_SITE_ID is not set")
+    if not alarm_ids:
+        raise ValueError("alarm_ids cannot be empty")
+    return tools.acknowledge_alarms(client, site_id=resolved_site, alarm_ids=alarm_ids)
+
+
+@mcp.tool()
+def acknowledge_alarm(site_id: Optional[str] = None, alarm_id: str = "") -> dict:
+    """Acknowledge a single alarm for a site."""
+
+    client = get_client()
+    resolved_site = site_id or client.config.default_site_id
+    if not resolved_site:
+        raise ValueError("site_id is required when MIST_DEFAULT_SITE_ID is not set")
+    if not alarm_id:
+        raise ValueError("alarm_id is required")
+    return tools.acknowledge_alarm(client, site_id=resolved_site, alarm_id=alarm_id)
+
+
+@mcp.tool()
 def inventory_status_summary(
     site_id: Optional[str] = None, device_types: Optional[List[str]] = None
 ) -> dict:
