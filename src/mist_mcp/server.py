@@ -295,6 +295,239 @@ def list_sites_prompt(country_codes: Optional[List[str]] = None) -> List[dict]:
 
 
 @mcp.prompt(
+    title="Site device counts",
+    description="Summarize device counts by type for a Mist site.",
+)
+def site_device_counts_prompt(site_id: Optional[str] = None) -> List[dict]:
+    """Guide the model to call the site_device_counts tool."""
+
+    return [
+        {
+            "role": "system",
+            "content": "Use the site_device_counts tool to tally APs, switches, and other device types.",
+        },
+        {
+            "role": "user",
+            "content": (
+                "Invoke `site_device_counts` with these parameters and summarize totals by device type.\n"
+                f"- site_id: {site_id or 'omit to use the default site id when configured'}"
+            ),
+        },
+    ]
+
+
+@mcp.prompt(
+    title="Apply switch port profile",
+    description="Assign a Mist port profile to a switch port.",
+)
+def configure_switch_port_profile_prompt(
+    site_id: Optional[str] = None,
+    device_id: str = "",
+    port_id: str = "",
+    port_profile_id: str = "",
+) -> List[dict]:
+    """Guide the model to call the configure_switch_port_profile tool."""
+
+    return [
+        {
+            "role": "system",
+            "content": "Use the configure_switch_port_profile tool to apply the requested port usage profile.",
+        },
+        {
+            "role": "user",
+            "content": (
+                "Invoke `configure_switch_port_profile` with these parameters and confirm the resulting port settings.\n"
+                f"- site_id: {site_id or 'omit to rely on the default site id'}\n"
+                f"- device_id: {device_id or 'required switch identifier'}\n"
+                f"- port_id: {port_id or 'required switch port identifier'}\n"
+                f"- port_profile_id: {port_profile_id or 'required port profile identifier'}"
+            ),
+        },
+    ]
+
+
+@mcp.prompt(
+    title="Create Mist site",
+    description="Create a Mist site with required details.",
+)
+def create_site_prompt(site_data: Optional[dict] = None) -> List[dict]:
+    """Guide the model to call the create_site tool."""
+
+    site_hint = site_data or {
+        "name": "Site name",
+        "country_code": "US",
+        "timezone": "America/New_York",
+        "address": "123 Main St, Anytown",
+    }
+
+    return [
+        {
+            "role": "system",
+            "content": "Use the create_site tool and ensure name, country_code, timezone, and address are provided.",
+        },
+        {
+            "role": "user",
+            "content": (
+                "Invoke `create_site` with the supplied site_data and return the newly created site details.\n"
+                f"- site_data: {site_hint}"
+            ),
+        },
+    ]
+
+
+@mcp.prompt(
+    title="Subscription summary",
+    description="Summarize Mist subscription usage and renewals.",
+)
+def subscription_summary_prompt() -> List[dict]:
+    """Guide the model to call the subscription_summary tool."""
+
+    return [
+        {
+            "role": "system",
+            "content": "Use the subscription_summary tool to report totals, utilization, and the next renewal date.",
+        },
+        {
+            "role": "user",
+            "content": "Invoke `subscription_summary` and summarize the returned subscription overview.",
+        },
+    ]
+
+
+@mcp.prompt(
+    title="List guest authorizations",
+    description="List all guest authorizations for the organization.",
+)
+def list_guest_authorizations_prompt() -> List[dict]:
+    """Guide the model to call the list_guest_authorizations tool."""
+
+    return [
+        {
+            "role": "system",
+            "content": "Use the list_guest_authorizations tool to return guest details including codes and expirations.",
+        },
+        {
+            "role": "user",
+            "content": "Invoke `list_guest_authorizations` and present the guests in a concise list or table.",
+        },
+    ]
+
+
+@mcp.prompt(
+    title="Site networks",
+    description="Show derived networks configured at a Mist site.",
+)
+def list_site_networks_prompt(site_id: Optional[str] = None) -> List[dict]:
+    """Guide the model to call the list_site_networks tool."""
+
+    return [
+        {
+            "role": "system",
+            "content": "Use the list_site_networks tool to enumerate derived networks for the site.",
+        },
+        {
+            "role": "user",
+            "content": (
+                "Invoke `list_site_networks` with these parameters and summarize the networks.\n"
+                f"- site_id: {site_id or 'omit to use the default site id when set'}"
+            ),
+        },
+    ]
+
+
+@mcp.prompt(
+    title="Site port usages",
+    description="Inspect derived port usages for a site to pick the right switch profile.",
+)
+def site_port_usages_prompt(site_id: Optional[str] = None) -> List[dict]:
+    """Guide the model to call the site_port_usages tool."""
+
+    return [
+        {
+            "role": "system",
+            "content": "Use the site_port_usages tool to return port usage definitions from site settings.",
+        },
+        {
+            "role": "user",
+            "content": (
+                "Invoke `site_port_usages` with these parameters and describe the available port usages.\n"
+                f"- site_id: {site_id or 'omit to rely on the default site id'}"
+            ),
+        },
+    ]
+
+
+@mcp.prompt(
+    title="Acknowledge all site alarms",
+    description="Acknowledge every active alarm for a site.",
+)
+def acknowledge_all_alarms_prompt(site_id: Optional[str] = None) -> List[dict]:
+    """Guide the model to call the acknowledge_all_alarms tool."""
+
+    return [
+        {
+            "role": "system",
+            "content": "Use the acknowledge_all_alarms tool to clear all alarms at the target site.",
+        },
+        {
+            "role": "user",
+            "content": (
+                "Invoke `acknowledge_all_alarms` with these parameters and confirm the outcome.\n"
+                f"- site_id: {site_id or 'omit to use the default site id when set'}"
+            ),
+        },
+    ]
+
+
+@mcp.prompt(
+    title="Acknowledge specific alarms",
+    description="Acknowledge selected alarms for a site.",
+)
+def acknowledge_alarms_prompt(site_id: Optional[str] = None, alarm_ids: Optional[List[str]] = None) -> List[dict]:
+    """Guide the model to call the acknowledge_alarms tool."""
+
+    alarm_list = alarm_ids or ["alarm-id-1", "alarm-id-2"]
+
+    return [
+        {
+            "role": "system",
+            "content": "Use the acknowledge_alarms tool to clear specific alarms and echo the ids handled.",
+        },
+        {
+            "role": "user",
+            "content": (
+                "Invoke `acknowledge_alarms` with these parameters and list which alarms were acknowledged.\n"
+                f"- site_id: {site_id or 'omit to use the default site id when available'}\n"
+                f"- alarm_ids: {alarm_list}"
+            ),
+        },
+    ]
+
+
+@mcp.prompt(
+    title="Acknowledge a single alarm",
+    description="Acknowledge one alarm for a site.",
+)
+def acknowledge_alarm_prompt(site_id: Optional[str] = None, alarm_id: str = "") -> List[dict]:
+    """Guide the model to call the acknowledge_alarm tool."""
+
+    return [
+        {
+            "role": "system",
+            "content": "Use the acknowledge_alarm tool to clear a single alarm and confirm the result.",
+        },
+        {
+            "role": "user",
+            "content": (
+                "Invoke `acknowledge_alarm` with these parameters and report the acknowledgment status.\n"
+                f"- site_id: {site_id or 'omit to use the default site id when configured'}\n"
+                f"- alarm_id: {alarm_id or 'required alarm identifier'}"
+            ),
+        },
+    ]
+
+
+@mcp.prompt(
     title="Site issues",
     description="Check for recent site alarms across specific sites or countries.",
 )
