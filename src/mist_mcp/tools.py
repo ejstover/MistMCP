@@ -28,6 +28,38 @@ def list_sites(client: MistClient, country_codes: Optional[Iterable[str]] = None
     return {"sites": sites}
 
 
+def sites_by_country(client: MistClient, country_codes: Optional[Iterable[str]] = None) -> Dict[str, List[dict]]:
+    """Group sites by country code with IDs and names for follow-on queries."""
+
+    sites = client.list_sites(country_codes=country_codes)
+    grouped: Dict[str, List[Dict[str, object]]] = {}
+
+    for site in sites:
+        country_code = str(site.get("country_code") or "").upper()
+        site_id = site.get("id")
+        if not country_code or not site_id:
+            continue
+
+        grouped.setdefault(country_code, []).append(
+            {
+                "id": site_id,
+                "name": site.get("name"),
+                "timezone": site.get("timezone"),
+            }
+        )
+
+    countries = [
+        {
+            "country_code": code,
+            "site_count": len(site_list),
+            "sites": sorted(site_list, key=lambda site: str(site.get("name") or site.get("id"))),
+        }
+        for code, site_list in sorted(grouped.items())
+    ]
+
+    return {"countries": countries}
+
+
 def site_device_counts(client: MistClient, site_id: str) -> Dict[str, Dict[str, int]]:
     """Summarize device counts for a site by device type."""
 

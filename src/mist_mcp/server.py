@@ -50,6 +50,14 @@ def list_sites(country_codes: Optional[List[str]] = None) -> dict:
 
 
 @mcp.tool()
+def sites_by_country(country_codes: Optional[List[str]] = None) -> dict:
+    """Group Mist sites by country with IDs for follow-on calls."""
+
+    client = get_client()
+    return tools.sites_by_country(client, country_codes=country_codes)
+
+
+@mcp.tool()
 def site_device_counts(site_id: Optional[str] = None) -> dict:
     """Count switches, APs, and other devices at a site."""
 
@@ -288,6 +296,30 @@ def list_sites_prompt(country_codes: Optional[List[str]] = None) -> List[dict]:
             "role": "user",
             "content": (
                 "Invoke `list_sites` with these parameters and present the sites in a short table.\n"
+                f"- country_codes: {country_codes or country_codes_hint}"
+            ),
+        },
+    ]
+
+
+@mcp.prompt(
+    title="Sites by country",
+    description="Group Mist sites by country code and include IDs for follow-on queries.",
+)
+def sites_by_country_prompt(country_codes: Optional[List[str]] = None) -> List[dict]:
+    """Guide the model to call the sites_by_country tool."""
+
+    country_codes_hint = 'omit or pass an array such as ["US", "CA"]'
+
+    return [
+        {
+            "role": "system",
+            "content": "Use the sites_by_country tool to group sites by country and list site ids.",
+        },
+        {
+            "role": "user",
+            "content": (
+                "Invoke `sites_by_country` with these parameters and summarize site IDs and names per country.\n"
                 f"- country_codes: {country_codes or country_codes_hint}"
             ),
         },
