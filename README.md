@@ -57,6 +57,7 @@ Once connected (for example via Claude Desktop), you can prompt the MCP server w
 - **find_device** – search inventory by IP address, MAC address, or hostname. Optionally limit to a site.
 - **find_client** – search connected or historical clients by IP address, MAC address, or hostname. Optionally limit to a site.
 - **list_sites** – list sites, optionally filtered by country codes.
+- **sites_by_country** – group sites by country code, returning site IDs and names to drive follow-on calls.
 - **site_device_counts** – summarize device counts (switches, APs, etc.) for a site.
 - **sites_with_recent_errors** – return alarms for one or more sites within the last N minutes.
 - **configure_switch_port_profile** – apply a specific port profile to a switch port on a device.
@@ -77,6 +78,7 @@ Once connected (for example via Claude Desktop), you can prompt the MCP server w
 - **device_lookup_prompt** – calls `find_device`. Inputs: `identifier` (IP, MAC, or hostname) and optional `site_id`.
 - **client_lookup_prompt** – calls `find_client`. Inputs: `identifier` (IP, MAC, or hostname) and optional `site_id`.
 - **list_sites_prompt** – calls `list_sites`. Inputs: optional `country_codes` array (e.g., `["DE", "NL"]`).
+- **sites_by_country_prompt** – calls `sites_by_country`. Inputs: optional `country_codes` array (e.g., `["US", "CA"]`).
 - **site_errors_prompt** – calls `sites_with_recent_errors`. Inputs: `minutes` window plus optional `site_ids` array or `country_codes`.
 
 ## Design notes
