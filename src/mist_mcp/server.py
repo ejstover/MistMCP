@@ -136,6 +136,14 @@ def list_guest_authorizations() -> dict:
 
 
 @mcp.tool()
+def org_device_summary() -> dict:
+    """Return counts of device types across the organization."""
+
+    client = get_client()
+    return tools.org_device_summary(client)
+
+
+@mcp.tool()
 def list_site_networks(site_id: Optional[str] = None) -> dict:
     """List derived networks for a site."""
 

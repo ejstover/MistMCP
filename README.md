@@ -64,6 +64,7 @@ Once connected (for example via Claude Desktop), you can prompt the MCP server w
 - **create_site** – provision a new Mist site (requires `name`, `country_code`, `timezone`, and `address`).
 - **subscription_summary** – report subscription counts, usage, next renewal, and raw subscription details.
 - **inventory_status_summary** – report total, connected, disconnected, and in-stock device counts by model. Accepts optional `site_id` and `device_types` (e.g., `ap` or `switch`).
+- **org_device_summary** – summarize organization-wide device counts (APs, switches, gateways, edges) via Mist's devices summary endpoint.
 - **list_guest_authorizations** – list all guest authorizations in the org.
 - **list_site_networks** – list derived networks for a site.
 - **site_port_usages** – fetch derived port usages from site settings to choose the correct switch profile.
