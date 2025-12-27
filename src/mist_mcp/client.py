@@ -145,7 +145,7 @@ class MistClient:
         """Search wired clients using the dedicated Mist endpoint."""
 
         payload = self._get(
-            f"/api/v1/orgs/{self.config.org_id}/clients/wired/search", **filters
+            f"/api/v1/orgs/{self.config.org_id}/wired_clients/search", **filters
         )
         return payload if isinstance(payload, list) else payload.get("results", [])
 
@@ -153,7 +153,7 @@ class MistClient:
         """Search wireless clients using the dedicated Mist endpoint."""
 
         payload = self._get(
-            f"/api/v1/orgs/{self.config.org_id}/clients/wireless/search", **filters
+            f"/api/v1/orgs/{self.config.org_id}/clients/search", **filters
         )
         return payload if isinstance(payload, list) else payload.get("results", [])
 

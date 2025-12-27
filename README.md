@@ -55,7 +55,7 @@ Once connected (for example via Claude Desktop), you can prompt the MCP server w
 
 ## Tools
 - **find_device** – search inventory by IP address, MAC address, or hostname. Optionally limit to a site.
-- **find_client** – search connected or historical clients by IP address, MAC address, or hostname. Optionally limit to a site.
+- **find_client** – search connected or historical clients by IP address, MAC address, or hostname across both wired and wireless endpoints. Optionally limit to a site.
 - **list_sites** – list sites, optionally filtered by country codes.
 - **site_device_counts** – summarize device counts (switches, APs, etc.) for a site.
 - **sites_with_recent_errors** – return alarms for one or more sites within the last N minutes.
