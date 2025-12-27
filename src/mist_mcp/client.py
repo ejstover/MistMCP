@@ -50,6 +50,12 @@ class MistClient:
         payload = self._get(path, **filters)
         return payload if isinstance(payload, list) else payload.get("results", [])
 
+    def org_device_summary(self) -> dict:
+        """Return device counts for the configured organization."""
+
+        payload = self._get(f"/api/v1/orgs/{self.config.org_id}/devices/summary")
+        return payload if isinstance(payload, dict) else {}
+
     def find_device_by_identifier(self, identifier: str, site_id: Optional[str] = None) -> List[dict]:
         """Find devices by IP, MAC, or hostname.
 

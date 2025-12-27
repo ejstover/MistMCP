@@ -129,6 +129,13 @@ def list_site_networks(client: MistClient, site_id: str) -> Dict[str, List[dict]
     return {"site_id": site_id, "networks": networks}
 
 
+def org_device_summary(client: MistClient) -> Dict[str, int]:
+    """Return counts of devices across the organization."""
+
+    summary = client.org_device_summary()
+    return {"summary": summary}
+
+
 def site_setting_port_usages(client: MistClient, site_id: str) -> Dict[str, object]:
     """Return derived site settings focusing on port usages."""
 
