@@ -200,22 +200,25 @@ def acknowledge_alarm(client: MistClient, site_id: str, alarm_id: str) -> Dict[s
     return {"site_id": site_id, "alarm_id": alarm_id, "result": result}
 
 
-def ping_from_device(
+def switch_cable_test(
     client: MistClient,
     site_id: str,
     device_id: str,
     host: str,
-    count: int = 4,
+    count: int,
 ) -> Dict[str, object]:
-    """Trigger a ping from a device and return the command session metadata."""
+    """Trigger a switch cable test (TDR) ping command and return session metadata."""
 
-    result = client.ping_from_device(site_id=site_id, device_id=device_id, count=count, host=host)
+    result = client.run_switch_cable_test(site_id=site_id, device_id=device_id, host=host, count=count)
+    channel = f"/sites/{site_id}/devices/{device_id}/cmd"
     return {
         "site_id": site_id,
         "device_id": device_id,
         "host": host,
         "count": count,
-        "result": result,
+        "session": result.get("session"),
+        "ws_channel": channel,
+        "response": result,
     }
 
 

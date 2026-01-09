@@ -200,8 +200,8 @@ class MistClient:
             f"/api/v1/sites/{site_id}/alarms/{alarm_id}/ack", payload={}
         )
 
-    def ping_from_device(self, site_id: str, device_id: str, count: int, host: str) -> dict:
-        """Trigger a device-originated ping and return the command session details."""
+    def run_switch_cable_test(self, site_id: str, device_id: str, host: str, count: int) -> dict:
+        """Trigger a switch cable test (TDR) by issuing a ping command."""
 
         body = {"count": count, "host": host}
         return self._post(
