@@ -431,6 +431,34 @@ def configure_switch_port_profile_prompt(
 
 
 @mcp.prompt(
+    title="Bounce device ports",
+    description="Bounce one or more ports on a Mist device.",
+)
+def bounce_device_port_prompt(
+    site_id: Optional[str] = None, device_id: str = "", ports: Optional[List[str]] = None
+) -> List[dict]:
+    """Guide the model to call the bounce_device_port tool."""
+
+    port_hint = ports or ["ge-0/0/0", "ge-0/0/1"]
+
+    return [
+        {
+            "role": "system",
+            "content": "Use the bounce_device_port tool to bounce one or more ports on a device.",
+        },
+        {
+            "role": "user",
+            "content": (
+                "Invoke `bounce_device_port` with these parameters and confirm the bounce request.\n"
+                f"- site_id: {site_id or 'omit to rely on the default site id'}\n"
+                f"- device_id: {device_id or 'required device identifier'}\n"
+                f"- ports: {port_hint}"
+            ),
+        },
+    ]
+
+
+@mcp.prompt(
     title="Create Mist site",
     description="Create a Mist site with required details.",
 )

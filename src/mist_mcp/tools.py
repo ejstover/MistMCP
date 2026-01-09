@@ -98,6 +98,22 @@ def configure_switch_port_profile(
     return {"site_id": site_id, "device_id": device_id, "port_id": port_id, "port": updated_port}
 
 
+def bounce_device_port(
+    client: MistClient,
+    site_id: str,
+    device_id: str,
+    ports: Iterable[str],
+) -> Dict[str, object]:
+    """Bounce one or more switch ports on a device."""
+
+    port_list = [port for port in ports if port]
+    if not port_list:
+        raise ValueError("ports cannot be empty")
+
+    result = client.bounce_device_port(site_id=site_id, device_id=device_id, ports=port_list)
+    return {"site_id": site_id, "device_id": device_id, "ports": port_list, "result": result}
+
+
 def create_site(client: MistClient, site_data: Dict[str, object]) -> Dict[str, dict]:
     """Create a Mist site after verifying required fields are present."""
 

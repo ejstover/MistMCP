@@ -82,6 +82,7 @@ Once connected (for example via Claude Desktop), you can prompt the MCP server w
 - **client_lookup_prompt** – calls `find_client`. Inputs: `identifier` (IP, MAC, or hostname) and optional `site_id`.
 - **list_sites_prompt** – calls `list_sites`. Inputs: optional `country_codes` array (e.g., `["DE", "NL"]`).
 - **sites_by_country_prompt** – calls `sites_by_country`. Inputs: optional `country_codes` array (e.g., `["US", "CA"]`).
+- **bounce_device_port_prompt** – calls `bounce_device_port`. Inputs: optional `site_id`, required `device_id`, and ports list (e.g., `["ge-0/0/0"]`).
 - **site_errors_prompt** – calls `sites_with_recent_errors`. Inputs: `minutes` window plus optional `site_ids` array or `country_codes`.
 
 ## Design notes
