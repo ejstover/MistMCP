@@ -46,7 +46,7 @@ Once connected (for example via Claude Desktop), you can prompt the MCP server w
   - "Which sites in the last 30 minutes have alarms or errors?"
 - Change management (write actions)
   - "On switch `00:11:22:33:44:55`, apply port profile `AP-Uplink` to port `ge-0/0/5`."
-  - "Bounce ports `ge-0/0/0` and `ge-0/0/1` on device `00:11:22:33:44:55`."
+  - "Run a switch cable test for host `192.0.2.10` with 4 pings on device `00000000-0000-0000-1000-5c5b350e0060`."
   - "Create a new site named `Remote-Branch-42` in country code `US` with timezone `America/New_York` and address `123 Main St, Springfield`."
 - Subscriptions
   - "Summarize our subscriptions—totals, used, available, and the next renewal date."
@@ -62,7 +62,7 @@ Once connected (for example via Claude Desktop), you can prompt the MCP server w
 - **site_device_counts** – summarize device counts (switches, APs, etc.) for a site.
 - **sites_with_recent_errors** – return alarms for one or more sites within the last N minutes.
 - **configure_switch_port_profile** – apply a specific port profile to a switch port on a device.
-- **bounce_device_port** – bounce one or more ports on a device.
+- **switch_cable_test** – trigger a switch cable test (TDR) by issuing a ping command; includes the websocket channel for streaming results.
 - **create_site** – provision a new Mist site (requires `name`, `country_code`, `timezone`, and `address`).
 - **subscription_summary** – report subscription counts, usage, next renewal, and raw subscription details.
 - **inventory_status_summary** – report total, connected, disconnected, and in-stock device counts by model. Accepts optional `site_id` and `device_types` (e.g., `ap` or `switch`).

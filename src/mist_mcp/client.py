@@ -190,6 +190,12 @@ class MistClient:
 
         return self._get(f"/api/v1/sites/{site_id}/setting/derived")
 
+    def list_country_codes(self) -> List[dict]:
+        """List supported country codes from the Mist constants endpoint."""
+
+        payload = self._get("/api/v1/const/countries")
+        return payload if isinstance(payload, list) else payload.get("results", [])
+
     def acknowledge_all_site_alarms(self, site_id: str) -> dict:
         """Acknowledge all alarms at a site."""
 
@@ -206,6 +212,14 @@ class MistClient:
 
         return self._post(
             f"/api/v1/sites/{site_id}/alarms/{alarm_id}/ack", payload={}
+        )
+
+    def run_switch_cable_test(self, site_id: str, device_id: str, host: str, count: int) -> dict:
+        """Trigger a switch cable test (TDR) by issuing a ping command."""
+
+        body = {"count": count, "host": host}
+        return self._post(
+            f"/api/v1/sites/{site_id}/devices/{device_id}/ping", payload=body
         )
 
     @staticmethod

@@ -195,6 +195,13 @@ def site_setting_port_usages(client: MistClient, site_id: str) -> Dict[str, obje
     }
 
 
+def list_country_codes(client: MistClient) -> Dict[str, List[dict]]:
+    """List supported country codes for the Mist dashboard."""
+
+    countries = client.list_country_codes()
+    return {"countries": countries}
+
+
 def acknowledge_all_alarms(client: MistClient, site_id: str) -> Dict[str, object]:
     """Acknowledge all alarms at a site."""
 
@@ -214,6 +221,28 @@ def acknowledge_alarm(client: MistClient, site_id: str, alarm_id: str) -> Dict[s
 
     result = client.acknowledge_site_alarm(site_id, alarm_id)
     return {"site_id": site_id, "alarm_id": alarm_id, "result": result}
+
+
+def switch_cable_test(
+    client: MistClient,
+    site_id: str,
+    device_id: str,
+    host: str,
+    count: int,
+) -> Dict[str, object]:
+    """Trigger a switch cable test (TDR) ping command and return session metadata."""
+
+    result = client.run_switch_cable_test(site_id=site_id, device_id=device_id, host=host, count=count)
+    channel = f"/sites/{site_id}/devices/{device_id}/cmd"
+    return {
+        "site_id": site_id,
+        "device_id": device_id,
+        "host": host,
+        "count": count,
+        "session": result.get("session"),
+        "ws_channel": channel,
+        "response": result,
+    }
 
 
 def inventory_status_summary(
