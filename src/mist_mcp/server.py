@@ -166,6 +166,14 @@ def site_port_usages(site_id: Optional[str] = None) -> dict:
 
 
 @mcp.tool()
+def list_country_codes() -> dict:
+    """List supported country codes from the Mist constants endpoint."""
+
+    client = get_client()
+    return tools.list_country_codes(client)
+
+
+@mcp.tool()
 def acknowledge_all_alarms(site_id: Optional[str] = None) -> dict:
     """Acknowledge all alarms for a site."""
 

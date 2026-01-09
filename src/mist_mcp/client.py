@@ -182,6 +182,12 @@ class MistClient:
 
         return self._get(f"/api/v1/sites/{site_id}/setting/derived")
 
+    def list_country_codes(self) -> List[dict]:
+        """List supported country codes from the Mist constants endpoint."""
+
+        payload = self._get("/api/v1/const/countries")
+        return payload if isinstance(payload, list) else payload.get("results", [])
+
     def acknowledge_all_site_alarms(self, site_id: str) -> dict:
         """Acknowledge all alarms at a site."""
 
