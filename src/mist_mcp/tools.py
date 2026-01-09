@@ -200,6 +200,25 @@ def acknowledge_alarm(client: MistClient, site_id: str, alarm_id: str) -> Dict[s
     return {"site_id": site_id, "alarm_id": alarm_id, "result": result}
 
 
+def ping_from_device(
+    client: MistClient,
+    site_id: str,
+    device_id: str,
+    host: str,
+    count: int = 4,
+) -> Dict[str, object]:
+    """Trigger a ping from a device and return the command session metadata."""
+
+    result = client.ping_from_device(site_id=site_id, device_id=device_id, count=count, host=host)
+    return {
+        "site_id": site_id,
+        "device_id": device_id,
+        "host": host,
+        "count": count,
+        "result": result,
+    }
+
+
 def inventory_status_summary(
     client: MistClient,
     site_id: Optional[str] = None,
