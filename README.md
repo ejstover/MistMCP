@@ -84,6 +84,7 @@ Once connected (for example via Claude Desktop), you can prompt the MCP server w
 - **sites_by_country_prompt** – calls `sites_by_country`. Inputs: optional `country_codes` array (e.g., `["US", "CA"]`).
 - **bounce_device_port_prompt** – calls `bounce_device_port`. Inputs: optional `site_id`, required `device_id`, and ports list (e.g., `["ge-0/0/0"]`).
 - **site_errors_prompt** – calls `sites_with_recent_errors`. Inputs: `minutes` window plus optional `site_ids` array or `country_codes`.
+- **locate_device_prompt** – calls `locate_device`. Inputs: optional `site_id` and required `device_id`.
 
 ## Design notes
 - Requests are routed through a tiny Mist client wrapper that handles authentication and optional site defaults.
