@@ -112,6 +112,25 @@ def configure_switch_port_profile(
 
 
 @mcp.tool()
+def bounce_device_port(
+    site_id: Optional[str] = None, device_id: str = "", ports: Optional[List[str]] = None
+) -> dict:
+    """Bounce one or more ports on a Mist device."""
+
+    client = get_client()
+    resolved_site = site_id or client.config.default_site_id
+    if not resolved_site:
+        raise ValueError("site_id is required when MIST_DEFAULT_SITE_ID is not set")
+    if not device_id:
+        raise ValueError("device_id is required")
+    if not ports:
+        raise ValueError("ports cannot be empty")
+    return tools.bounce_device_port(
+        client, site_id=resolved_site, device_id=device_id, ports=ports
+    )
+
+
+@mcp.tool()
 def create_site(site_data: dict) -> dict:
     """Create a new Mist site. Requires name, country_code, timezone, and address."""
 
@@ -381,6 +400,34 @@ def configure_switch_port_profile_prompt(
                 f"- device_id: {device_id or 'required switch identifier'}\n"
                 f"- port_id: {port_id or 'required switch port identifier'}\n"
                 f"- port_profile_id: {port_profile_id or 'required port profile identifier'}"
+            ),
+        },
+    ]
+
+
+@mcp.prompt(
+    title="Bounce device ports",
+    description="Bounce one or more ports on a Mist device.",
+)
+def bounce_device_port_prompt(
+    site_id: Optional[str] = None, device_id: str = "", ports: Optional[List[str]] = None
+) -> List[dict]:
+    """Guide the model to call the bounce_device_port tool."""
+
+    port_hint = ports or ["ge-0/0/0", "ge-0/0/1"]
+
+    return [
+        {
+            "role": "system",
+            "content": "Use the bounce_device_port tool to bounce one or more ports on a device.",
+        },
+        {
+            "role": "user",
+            "content": (
+                "Invoke `bounce_device_port` with these parameters and confirm the bounce request.\n"
+                f"- site_id: {site_id or 'omit to rely on the default site id'}\n"
+                f"- device_id: {device_id or 'required device identifier'}\n"
+                f"- ports: {port_hint}"
             ),
         },
     ]

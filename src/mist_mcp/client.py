@@ -134,6 +134,14 @@ class MistClient:
             payload=body,
         )
 
+    def bounce_device_port(self, site_id: str, device_id: str, ports: Iterable[str]) -> dict:
+        """Bounce one or more switch ports on a device."""
+
+        body = {"ports": list(ports)}
+        return self._post(
+            f"/api/v1/sites/{site_id}/devices/{device_id}/bounce_port", payload=body
+        )
+
     def create_site(self, site_data: dict) -> dict:
         """Create a new Mist site with the provided metadata."""
 
