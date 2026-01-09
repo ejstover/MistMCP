@@ -98,6 +98,22 @@ def configure_switch_port_profile(
     return {"site_id": site_id, "device_id": device_id, "port_id": port_id, "port": updated_port}
 
 
+def bounce_device_port(
+    client: MistClient,
+    site_id: str,
+    device_id: str,
+    ports: Iterable[str],
+) -> Dict[str, object]:
+    """Bounce one or more switch ports on a device."""
+
+    port_list = [port for port in ports if port]
+    if not port_list:
+        raise ValueError("ports cannot be empty")
+
+    result = client.bounce_device_port(site_id=site_id, device_id=device_id, ports=port_list)
+    return {"site_id": site_id, "device_id": device_id, "ports": port_list, "result": result}
+
+
 def create_site(client: MistClient, site_data: Dict[str, object]) -> Dict[str, dict]:
     """Create a Mist site after verifying required fields are present."""
 
@@ -179,6 +195,13 @@ def site_setting_port_usages(client: MistClient, site_id: str) -> Dict[str, obje
     }
 
 
+def list_country_codes(client: MistClient) -> Dict[str, List[dict]]:
+    """List supported country codes for the Mist dashboard."""
+
+    countries = client.list_country_codes()
+    return {"countries": countries}
+
+
 def acknowledge_all_alarms(client: MistClient, site_id: str) -> Dict[str, object]:
     """Acknowledge all alarms at a site."""
 
@@ -200,11 +223,26 @@ def acknowledge_alarm(client: MistClient, site_id: str, alarm_id: str) -> Dict[s
     return {"site_id": site_id, "alarm_id": alarm_id, "result": result}
 
 
-def stop_site_locate_device(client: MistClient, site_id: str, device_id: str) -> Dict[str, object]:
-    """Stop locating a device by turning off its LED or port blinking."""
+def switch_cable_test(
+    client: MistClient,
+    site_id: str,
+    device_id: str,
+    host: str,
+    count: int,
+) -> Dict[str, object]:
+    """Trigger a switch cable test (TDR) ping command and return session metadata."""
 
-    result = client.unlocate_device(site_id=site_id, device_id=device_id)
-    return {"site_id": site_id, "device_id": device_id, "result": result}
+    result = client.run_switch_cable_test(site_id=site_id, device_id=device_id, host=host, count=count)
+    channel = f"/sites/{site_id}/devices/{device_id}/cmd"
+    return {
+        "site_id": site_id,
+        "device_id": device_id,
+        "host": host,
+        "count": count,
+        "session": result.get("session"),
+        "ws_channel": channel,
+        "response": result,
+    }
 
 
 def inventory_status_summary(
