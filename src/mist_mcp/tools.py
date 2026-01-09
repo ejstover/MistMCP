@@ -200,6 +200,13 @@ def acknowledge_alarm(client: MistClient, site_id: str, alarm_id: str) -> Dict[s
     return {"site_id": site_id, "alarm_id": alarm_id, "result": result}
 
 
+def list_alarm_definitions(client: MistClient) -> Dict[str, List[dict]]:
+    """List supported alarm definitions."""
+
+    alarm_definitions = client.list_alarm_definitions()
+    return {"alarm_definitions": alarm_definitions}
+
+
 def inventory_status_summary(
     client: MistClient,
     site_id: Optional[str] = None,

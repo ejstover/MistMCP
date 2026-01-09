@@ -200,6 +200,12 @@ class MistClient:
             f"/api/v1/sites/{site_id}/alarms/{alarm_id}/ack", payload={}
         )
 
+    def list_alarm_definitions(self) -> List[dict]:
+        """List the supported alarm definitions."""
+
+        payload = self._get("/api/v1/const/alarm_defs")
+        return payload if isinstance(payload, list) else payload.get("results", [])
+
     @staticmethod
     def _looks_like_ip(identifier: str) -> bool:
         parts = identifier.split(".")
