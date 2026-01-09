@@ -112,8 +112,13 @@ def configure_switch_port_profile(
 
 
 @mcp.tool()
-def locate_device(site_id: Optional[str] = None, device_id: str = "") -> dict:
-    """Locate a device by blinking its LEDs."""
+def switch_cable_test(
+    device_id: str,
+    host: str,
+    count: int,
+    site_id: Optional[str] = None,
+) -> dict:
+    """Trigger a switch cable test (TDR) ping command on a device."""
 
     client = get_client()
     resolved_site = site_id or client.config.default_site_id
@@ -121,7 +126,17 @@ def locate_device(site_id: Optional[str] = None, device_id: str = "") -> dict:
         raise ValueError("site_id is required when MIST_DEFAULT_SITE_ID is not set")
     if not device_id:
         raise ValueError("device_id is required")
-    return tools.locate_device(client, site_id=resolved_site, device_id=device_id)
+    if not host:
+        raise ValueError("host is required")
+    if count <= 0:
+        raise ValueError("count must be a positive integer")
+    return tools.switch_cable_test(
+        client,
+        site_id=resolved_site,
+        device_id=device_id,
+        host=host,
+        count=count,
+    )
 
 
 @mcp.tool()
@@ -179,6 +194,14 @@ def site_port_usages(site_id: Optional[str] = None) -> dict:
 
 
 @mcp.tool()
+def list_country_codes() -> dict:
+    """List supported country codes from the Mist constants endpoint."""
+
+    client = get_client()
+    return tools.list_country_codes(client)
+
+
+@mcp.tool()
 def acknowledge_all_alarms(site_id: Optional[str] = None) -> dict:
     """Acknowledge all alarms for a site."""
 
@@ -213,6 +236,14 @@ def acknowledge_alarm(site_id: Optional[str] = None, alarm_id: str = "") -> dict
     if not alarm_id:
         raise ValueError("alarm_id is required")
     return tools.acknowledge_alarm(client, site_id=resolved_site, alarm_id=alarm_id)
+
+
+@mcp.tool()
+def list_alarm_definitions() -> dict:
+    """List definitions for supported alarm types."""
+
+    client = get_client()
+    return tools.list_alarm_definitions(client)
 
 
 @mcp.tool()
@@ -400,23 +431,28 @@ def configure_switch_port_profile_prompt(
 
 
 @mcp.prompt(
-    title="Locate a device",
-    description="Trigger the LED locate action on an AP or switch.",
+    title="Bounce device ports",
+    description="Bounce one or more ports on a Mist device.",
 )
-def locate_device_prompt(site_id: Optional[str] = None, device_id: str = "") -> List[dict]:
-    """Guide the model to call the locate_device tool."""
+def bounce_device_port_prompt(
+    site_id: Optional[str] = None, device_id: str = "", ports: Optional[List[str]] = None
+) -> List[dict]:
+    """Guide the model to call the bounce_device_port tool."""
+
+    port_hint = ports or ["ge-0/0/0", "ge-0/0/1"]
 
     return [
         {
             "role": "system",
-            "content": "Use the locate_device tool to blink the LEDs for the requested device.",
+            "content": "Use the bounce_device_port tool to bounce one or more ports on a device.",
         },
         {
             "role": "user",
             "content": (
-                "Invoke `locate_device` with these parameters and confirm the API response.\n"
+                "Invoke `bounce_device_port` with these parameters and confirm the bounce request.\n"
                 f"- site_id: {site_id or 'omit to rely on the default site id'}\n"
-                f"- device_id: {device_id or 'required device identifier'}"
+                f"- device_id: {device_id or 'required device identifier'}\n"
+                f"- ports: {port_hint}"
             ),
         },
     ]
@@ -599,6 +635,25 @@ def acknowledge_alarm_prompt(site_id: Optional[str] = None, alarm_id: str = "") 
                 f"- site_id: {site_id or 'omit to use the default site id when configured'}\n"
                 f"- alarm_id: {alarm_id or 'required alarm identifier'}"
             ),
+        },
+    ]
+
+
+@mcp.prompt(
+    title="List alarm definitions",
+    description="List supported Mist alarm types and their metadata.",
+)
+def list_alarm_definitions_prompt() -> List[dict]:
+    """Guide the model to call the list_alarm_definitions tool."""
+
+    return [
+        {
+            "role": "system",
+            "content": "Use the list_alarm_definitions tool to fetch alarm metadata such as display names and fields.",
+        },
+        {
+            "role": "user",
+            "content": "Invoke `list_alarm_definitions` and summarize the available alarm types.",
         },
     ]
 
