@@ -47,6 +47,7 @@ Once connected (for example via Claude Desktop), you can prompt the MCP server w
 - Change management (write actions)
   - "On switch `00:11:22:33:44:55`, apply port profile `AP-Uplink` to port `ge-0/0/5`."
   - "Create a new site named `Remote-Branch-42` in country code `US` with timezone `America/New_York` and address `123 Main St, Springfield`."
+  - "Stop locating device `ap-1` once the on-site tech has found it."
 - Subscriptions
   - "Summarize our subscriptions—totals, used, available, and the next renewal date."
   - "List every subscription SKU with counts and usage."
@@ -71,6 +72,7 @@ Once connected (for example via Claude Desktop), you can prompt the MCP server w
 - **acknowledge_all_alarms** – acknowledge every alarm at a site.
 - **acknowledge_alarms** – acknowledge multiple specified alarms at a site.
 - **acknowledge_alarm** – acknowledge a specific alarm at a site.
+- **stop_site_locate_device** – stop locating an access point or switch by turning off LED or port blinking.
 
 ## Prompts
 `prompts/list` will show the registered helpers you can call directly instead of crafting custom requests:

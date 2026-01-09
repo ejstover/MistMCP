@@ -200,6 +200,13 @@ def acknowledge_alarm(client: MistClient, site_id: str, alarm_id: str) -> Dict[s
     return {"site_id": site_id, "alarm_id": alarm_id, "result": result}
 
 
+def stop_site_locate_device(client: MistClient, site_id: str, device_id: str) -> Dict[str, object]:
+    """Stop locating a device by turning off its LED or port blinking."""
+
+    result = client.unlocate_device(site_id=site_id, device_id=device_id)
+    return {"site_id": site_id, "device_id": device_id, "result": result}
+
+
 def inventory_status_summary(
     client: MistClient,
     site_id: Optional[str] = None,

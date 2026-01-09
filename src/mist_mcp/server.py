@@ -203,6 +203,19 @@ def acknowledge_alarm(site_id: Optional[str] = None, alarm_id: str = "") -> dict
 
 
 @mcp.tool()
+def stop_site_locate_device(site_id: Optional[str] = None, device_id: str = "") -> dict:
+    """Stop locating a device by disabling its LED or port blinking."""
+
+    client = get_client()
+    resolved_site = site_id or client.config.default_site_id
+    if not resolved_site:
+        raise ValueError("site_id is required when MIST_DEFAULT_SITE_ID is not set")
+    if not device_id:
+        raise ValueError("device_id is required")
+    return tools.stop_site_locate_device(client, site_id=resolved_site, device_id=device_id)
+
+
+@mcp.tool()
 def inventory_status_summary(
     site_id: Optional[str] = None, device_types: Optional[List[str]] = None
 ) -> dict:

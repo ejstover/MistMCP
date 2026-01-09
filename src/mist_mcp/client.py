@@ -200,6 +200,13 @@ class MistClient:
             f"/api/v1/sites/{site_id}/alarms/{alarm_id}/ack", payload={}
         )
 
+    def unlocate_device(self, site_id: str, device_id: str) -> dict:
+        """Stop locating a device by disabling LED or port blinking."""
+
+        return self._post(
+            f"/api/v1/sites/{site_id}/devices/{device_id}/unlocate", payload={}
+        )
+
     @staticmethod
     def _looks_like_ip(identifier: str) -> bool:
         parts = identifier.split(".")
