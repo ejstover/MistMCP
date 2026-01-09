@@ -179,6 +179,13 @@ def site_setting_port_usages(client: MistClient, site_id: str) -> Dict[str, obje
     }
 
 
+def list_country_codes(client: MistClient) -> Dict[str, List[dict]]:
+    """List supported country codes for the Mist dashboard."""
+
+    countries = client.list_country_codes()
+    return {"countries": countries}
+
+
 def acknowledge_all_alarms(client: MistClient, site_id: str) -> Dict[str, object]:
     """Acknowledge all alarms at a site."""
 
