@@ -70,6 +70,7 @@ Once connected (for example via Claude Desktop), you can prompt the MCP server w
 - **org_device_summary** – summarize organization-wide device counts (APs, switches, gateways, edges) via Mist's devices summary endpoint.
 - **list_guest_authorizations** – list all guest authorizations in the org.
 - **list_site_networks** – list derived networks for a site.
+- **ping_from_device** – trigger a ping from a device. Results are streamed over the device command websocket channel.
 - **site_port_usages** – fetch derived port usages from site settings to choose the correct switch profile.
 - **acknowledge_all_alarms** – acknowledge every alarm at a site.
 - **acknowledge_alarms** – acknowledge multiple specified alarms at a site.
