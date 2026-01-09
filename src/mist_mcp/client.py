@@ -134,6 +134,13 @@ class MistClient:
             payload=body,
         )
 
+    def locate_device(self, site_id: str, device_id: str) -> dict:
+        """Trigger a device locator action (blink LED) for an access point or switch."""
+
+        return self._post(
+            f"/api/v1/sites/{site_id}/devices/{device_id}/locate", payload={}
+        )
+
     def create_site(self, site_data: dict) -> dict:
         """Create a new Mist site with the provided metadata."""
 

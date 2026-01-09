@@ -46,6 +46,7 @@ Once connected (for example via Claude Desktop), you can prompt the MCP server w
   - "Which sites in the last 30 minutes have alarms or errors?"
 - Change management (write actions)
   - "On switch `00:11:22:33:44:55`, apply port profile `AP-Uplink` to port `ge-0/0/5`."
+  - "Blink the LEDs on device `00:11:22:33:44:55` to locate it in the rack."
   - "Create a new site named `Remote-Branch-42` in country code `US` with timezone `America/New_York` and address `123 Main St, Springfield`."
 - Subscriptions
   - "Summarize our subscriptions—totals, used, available, and the next renewal date."
@@ -61,6 +62,7 @@ Once connected (for example via Claude Desktop), you can prompt the MCP server w
 - **site_device_counts** – summarize device counts (switches, APs, etc.) for a site.
 - **sites_with_recent_errors** – return alarms for one or more sites within the last N minutes.
 - **configure_switch_port_profile** – apply a specific port profile to a switch port on a device.
+- **locate_device** – trigger a locate action to blink device LEDs for an AP or switch.
 - **create_site** – provision a new Mist site (requires `name`, `country_code`, `timezone`, and `address`).
 - **subscription_summary** – report subscription counts, usage, next renewal, and raw subscription details.
 - **inventory_status_summary** – report total, connected, disconnected, and in-stock device counts by model. Accepts optional `site_id` and `device_types` (e.g., `ap` or `switch`).
@@ -81,6 +83,7 @@ Once connected (for example via Claude Desktop), you can prompt the MCP server w
 - **list_sites_prompt** – calls `list_sites`. Inputs: optional `country_codes` array (e.g., `["DE", "NL"]`).
 - **sites_by_country_prompt** – calls `sites_by_country`. Inputs: optional `country_codes` array (e.g., `["US", "CA"]`).
 - **site_errors_prompt** – calls `sites_with_recent_errors`. Inputs: `minutes` window plus optional `site_ids` array or `country_codes`.
+- **locate_device_prompt** – calls `locate_device`. Inputs: optional `site_id` and required `device_id`.
 
 ## Design notes
 - Requests are routed through a tiny Mist client wrapper that handles authentication and optional site defaults.
