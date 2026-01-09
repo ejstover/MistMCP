@@ -200,6 +200,14 @@ class MistClient:
             f"/api/v1/sites/{site_id}/alarms/{alarm_id}/ack", payload={}
         )
 
+    def run_switch_cable_test(self, site_id: str, device_id: str, host: str, count: int) -> dict:
+        """Trigger a switch cable test (TDR) by issuing a ping command."""
+
+        body = {"count": count, "host": host}
+        return self._post(
+            f"/api/v1/sites/{site_id}/devices/{device_id}/ping", payload=body
+        )
+
     @staticmethod
     def _looks_like_ip(identifier: str) -> bool:
         parts = identifier.split(".")
