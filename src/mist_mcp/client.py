@@ -200,6 +200,14 @@ class MistClient:
             f"/api/v1/sites/{site_id}/alarms/{alarm_id}/ack", payload={}
         )
 
+    def ping_from_device(self, site_id: str, device_id: str, count: int, host: str) -> dict:
+        """Trigger a device-originated ping and return the command session details."""
+
+        body = {"count": count, "host": host}
+        return self._post(
+            f"/api/v1/sites/{site_id}/devices/{device_id}/ping", payload=body
+        )
+
     @staticmethod
     def _looks_like_ip(identifier: str) -> bool:
         parts = identifier.split(".")

@@ -155,6 +155,28 @@ def list_site_networks(site_id: Optional[str] = None) -> dict:
 
 
 @mcp.tool()
+def ping_from_device(
+    device_id: str,
+    host: str,
+    count: int = 4,
+    site_id: Optional[str] = None,
+) -> dict:
+    """Trigger a ping from a device; subscribe to the device cmd stream for output."""
+
+    client = get_client()
+    resolved_site = site_id or client.config.default_site_id
+    if not resolved_site:
+        raise ValueError("site_id is required when MIST_DEFAULT_SITE_ID is not set")
+    return tools.ping_from_device(
+        client,
+        site_id=resolved_site,
+        device_id=device_id,
+        host=host,
+        count=count,
+    )
+
+
+@mcp.tool()
 def site_port_usages(site_id: Optional[str] = None) -> dict:
     """Return derived site port usages to help select the correct switch profile."""
 
