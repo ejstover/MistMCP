@@ -112,6 +112,34 @@ def configure_switch_port_profile(
 
 
 @mcp.tool()
+def switch_cable_test(
+    device_id: str,
+    host: str,
+    count: int,
+    site_id: Optional[str] = None,
+) -> dict:
+    """Trigger a switch cable test (TDR) ping command on a device."""
+
+    client = get_client()
+    resolved_site = site_id or client.config.default_site_id
+    if not resolved_site:
+        raise ValueError("site_id is required when MIST_DEFAULT_SITE_ID is not set")
+    if not device_id:
+        raise ValueError("device_id is required")
+    if not host:
+        raise ValueError("host is required")
+    if count <= 0:
+        raise ValueError("count must be a positive integer")
+    return tools.switch_cable_test(
+        client,
+        site_id=resolved_site,
+        device_id=device_id,
+        host=host,
+        count=count,
+    )
+
+
+@mcp.tool()
 def create_site(site_data: dict) -> dict:
     """Create a new Mist site. Requires name, country_code, timezone, and address."""
 

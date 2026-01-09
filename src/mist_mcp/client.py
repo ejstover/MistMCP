@@ -200,11 +200,13 @@ class MistClient:
             f"/api/v1/sites/{site_id}/alarms/{alarm_id}/ack", payload={}
         )
 
-    def list_alarm_definitions(self) -> List[dict]:
-        """List the supported alarm definitions."""
+    def run_switch_cable_test(self, site_id: str, device_id: str, host: str, count: int) -> dict:
+        """Trigger a switch cable test (TDR) by issuing a ping command."""
 
-        payload = self._get("/api/v1/const/alarm_defs")
-        return payload if isinstance(payload, list) else payload.get("results", [])
+        body = {"count": count, "host": host}
+        return self._post(
+            f"/api/v1/sites/{site_id}/devices/{device_id}/ping", payload=body
+        )
 
     @staticmethod
     def _looks_like_ip(identifier: str) -> bool:

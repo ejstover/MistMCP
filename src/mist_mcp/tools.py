@@ -200,11 +200,26 @@ def acknowledge_alarm(client: MistClient, site_id: str, alarm_id: str) -> Dict[s
     return {"site_id": site_id, "alarm_id": alarm_id, "result": result}
 
 
-def list_alarm_definitions(client: MistClient) -> Dict[str, List[dict]]:
-    """List supported alarm definitions."""
+def switch_cable_test(
+    client: MistClient,
+    site_id: str,
+    device_id: str,
+    host: str,
+    count: int,
+) -> Dict[str, object]:
+    """Trigger a switch cable test (TDR) ping command and return session metadata."""
 
-    alarm_definitions = client.list_alarm_definitions()
-    return {"alarm_definitions": alarm_definitions}
+    result = client.run_switch_cable_test(site_id=site_id, device_id=device_id, host=host, count=count)
+    channel = f"/sites/{site_id}/devices/{device_id}/cmd"
+    return {
+        "site_id": site_id,
+        "device_id": device_id,
+        "host": host,
+        "count": count,
+        "session": result.get("session"),
+        "ws_channel": channel,
+        "response": result,
+    }
 
 
 def inventory_status_summary(
