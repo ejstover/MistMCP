@@ -231,6 +231,14 @@ def acknowledge_alarm(site_id: Optional[str] = None, alarm_id: str = "") -> dict
 
 
 @mcp.tool()
+def list_alarm_definitions() -> dict:
+    """List definitions for supported alarm types."""
+
+    client = get_client()
+    return tools.list_alarm_definitions(client)
+
+
+@mcp.tool()
 def inventory_status_summary(
     site_id: Optional[str] = None, device_types: Optional[List[str]] = None
 ) -> dict:
@@ -591,6 +599,25 @@ def acknowledge_alarm_prompt(site_id: Optional[str] = None, alarm_id: str = "") 
                 f"- site_id: {site_id or 'omit to use the default site id when configured'}\n"
                 f"- alarm_id: {alarm_id or 'required alarm identifier'}"
             ),
+        },
+    ]
+
+
+@mcp.prompt(
+    title="List alarm definitions",
+    description="List supported Mist alarm types and their metadata.",
+)
+def list_alarm_definitions_prompt() -> List[dict]:
+    """Guide the model to call the list_alarm_definitions tool."""
+
+    return [
+        {
+            "role": "system",
+            "content": "Use the list_alarm_definitions tool to fetch alarm metadata such as display names and fields.",
+        },
+        {
+            "role": "user",
+            "content": "Invoke `list_alarm_definitions` and summarize the available alarm types.",
         },
     ]
 
