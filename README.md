@@ -46,7 +46,9 @@ Once connected (for example via Claude Desktop), you can prompt the MCP server w
   - "Which sites in the last 30 minutes have alarms or errors?"
 - Change management (write actions)
   - "On switch `00:11:22:33:44:55`, apply port profile `AP-Uplink` to port `ge-0/0/5`."
+  - "Run a switch cable test for host `192.0.2.10` with 4 pings on device `00000000-0000-0000-1000-5c5b350e0060`."
   - "Create a new site named `Remote-Branch-42` in country code `US` with timezone `America/New_York` and address `123 Main St, Springfield`."
+  - "Stop locating device `ap-1` once the on-site tech has found it."
 - Subscriptions
   - "Summarize our subscriptions—totals, used, available, and the next renewal date."
   - "List every subscription SKU with counts and usage."
@@ -61,6 +63,7 @@ Once connected (for example via Claude Desktop), you can prompt the MCP server w
 - **site_device_counts** – summarize device counts (switches, APs, etc.) for a site.
 - **sites_with_recent_errors** – return alarms for one or more sites within the last N minutes.
 - **configure_switch_port_profile** – apply a specific port profile to a switch port on a device.
+- **switch_cable_test** – trigger a switch cable test (TDR) by issuing a ping command; includes the websocket channel for streaming results.
 - **create_site** – provision a new Mist site (requires `name`, `country_code`, `timezone`, and `address`).
 - **subscription_summary** – report subscription counts, usage, next renewal, and raw subscription details.
 - **inventory_status_summary** – report total, connected, disconnected, and in-stock device counts by model. Accepts optional `site_id` and `device_types` (e.g., `ap` or `switch`).
@@ -72,6 +75,7 @@ Once connected (for example via Claude Desktop), you can prompt the MCP server w
 - **acknowledge_all_alarms** – acknowledge every alarm at a site.
 - **acknowledge_alarms** – acknowledge multiple specified alarms at a site.
 - **acknowledge_alarm** – acknowledge a specific alarm at a site.
+- **stop_site_locate_device** – stop locating an access point or switch by turning off LED or port blinking.
 
 ## Prompts
 `prompts/list` will show the registered helpers you can call directly instead of crafting custom requests:
@@ -81,7 +85,9 @@ Once connected (for example via Claude Desktop), you can prompt the MCP server w
 - **client_lookup_prompt** – calls `find_client`. Inputs: `identifier` (IP, MAC, or hostname) and optional `site_id`.
 - **list_sites_prompt** – calls `list_sites`. Inputs: optional `country_codes` array (e.g., `["DE", "NL"]`).
 - **sites_by_country_prompt** – calls `sites_by_country`. Inputs: optional `country_codes` array (e.g., `["US", "CA"]`).
+- **bounce_device_port_prompt** – calls `bounce_device_port`. Inputs: optional `site_id`, required `device_id`, and ports list (e.g., `["ge-0/0/0"]`).
 - **site_errors_prompt** – calls `sites_with_recent_errors`. Inputs: `minutes` window plus optional `site_ids` array or `country_codes`.
+- **locate_device_prompt** – calls `locate_device`. Inputs: optional `site_id` and required `device_id`.
 
 ## Design notes
 - Requests are routed through a tiny Mist client wrapper that handles authentication and optional site defaults.
