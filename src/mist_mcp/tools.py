@@ -8,21 +8,21 @@ from .client import MistClient
 
 
 def find_device(client: MistClient, identifier: str, site_id: Optional[str] = None) -> Dict[str, List[dict]]:
-    """Find a device by IP address, MAC address, or hostname."""
+    """Find device inventory entries by IP, MAC, or hostname for a site or the org."""
 
     matches = client.find_device_by_identifier(identifier, site_id=site_id)
     return {"matches": matches}
 
 
 def find_client(client: MistClient, identifier: str, site_id: Optional[str] = None) -> Dict[str, List[dict]]:
-    """Find a client by IP address, MAC address, or hostname."""
+    """Find connected or historical clients by IP, MAC, or hostname."""
 
     matches = client.find_client_by_identifier(identifier, site_id=site_id)
     return {"matches": matches}
 
 
 def list_sites(client: MistClient, country_codes: Optional[Iterable[str]] = None) -> Dict[str, List[dict]]:
-    """List sites filtered by country codes when provided."""
+    """List sites, optionally filtered by country codes."""
 
     sites = client.list_sites(country_codes=country_codes)
     return {"sites": sites}
@@ -72,7 +72,7 @@ def site_device_counts(client: MistClient, site_id: str) -> Dict[str, Dict[str, 
 
 
 def sites_with_recent_errors(client: MistClient, site_ids: Iterable[str], minutes: int = 60) -> Dict[str, List[dict]]:
-    """Return alarms for the provided sites within the given window."""
+    """Return alarms for the provided sites within the given time window."""
 
     results: List[dict] = []
     for site_id in site_ids:
@@ -90,7 +90,7 @@ def configure_switch_port_profile(
     port_id: str,
     port_profile_id: str,
 ) -> Dict[str, dict]:
-    """Apply a Mist port profile to a switch port."""
+    """Apply a Mist port usage profile to a specific switch port."""
 
     updated_port = client.update_switch_port_config(
         site_id=site_id, device_id=device_id, port_id=port_id, usage_id=port_profile_id

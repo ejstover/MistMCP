@@ -56,26 +56,26 @@ Once connected (for example via Claude Desktop), you can prompt the MCP server w
 > Tip: Include site IDs or names when you want to scope results. The tools are read-only except where explicitly noted (port profile updates and site creation).
 
 ## Tools
-- **find_device** – search inventory by IP address, MAC address, or hostname. Optionally limit to a site.
-- **find_client** – search connected or historical clients by IP address, MAC address, or hostname across both wired and wireless endpoints. Optionally limit to a site.
-- **list_sites** – list sites, optionally filtered by country codes.
-- **sites_by_country** – group sites by country code, returning site IDs and names to drive follow-on calls.
-- **site_device_counts** – summarize device counts (switches, APs, etc.) for a site.
-- **sites_with_recent_errors** – return alarms for one or more sites within the last N minutes.
-- **configure_switch_port_profile** – apply a specific port profile to a switch port on a device.
-- **switch_cable_test** – trigger a switch cable test (TDR) by issuing a ping command; includes the websocket channel for streaming results.
-- **create_site** – provision a new Mist site (requires `name`, `country_code`, `timezone`, and `address`).
-- **subscription_summary** – report subscription counts, usage, next renewal, and raw subscription details.
-- **inventory_status_summary** – report total, connected, disconnected, and in-stock device counts by model. Accepts optional `site_id` and `device_types` (e.g., `ap` or `switch`).
-- **org_device_summary** – summarize organization-wide device counts (APs, switches, gateways, edges) via Mist's devices summary endpoint.
-- **list_guest_authorizations** – list all guest authorizations in the org.
-- **list_site_networks** – list derived networks for a site.
-- **ping_from_device** – trigger a ping from a device. Results are streamed over the device command websocket channel.
-- **site_port_usages** – fetch derived port usages from site settings to choose the correct switch profile.
-- **acknowledge_all_alarms** – acknowledge every alarm at a site.
-- **acknowledge_alarms** – acknowledge multiple specified alarms at a site.
-- **acknowledge_alarm** – acknowledge a specific alarm at a site.
-- **stop_site_locate_device** – stop locating an access point or switch by turning off LED or port blinking.
+- **find_device** – search device inventory by IP, MAC, or hostname and return matching records (optionally scoped to a site).
+- **find_client** – look up connected or historical clients by IP, MAC, or hostname across wired and wireless endpoints (optionally scoped to a site).
+- **list_sites** – list available sites with IDs, optionally filtered by country codes to narrow the results.
+- **sites_by_country** – group sites by country code and return site IDs/names for follow-on calls.
+- **site_device_counts** – summarize counts of switches, APs, and other device types for a specific site.
+- **sites_with_recent_errors** – retrieve alarms for one or more sites within the last N minutes, useful for recent incident summaries.
+- **configure_switch_port_profile** – apply a Mist port usage profile to a specific switch port (write operation).
+- **switch_cable_test** – run a cable test (TDR ping) on a switch and return the command session plus websocket channel for streamed results.
+- **create_site** – create a new Mist site (requires `name`, `country_code`, `timezone`, and `address`).
+- **subscription_summary** – report subscription totals, usage, next renewal date, and raw subscription details.
+- **inventory_status_summary** – report total, connected, disconnected, and in-stock device counts by model, optionally filtered by `site_id` and `device_types` (e.g., `ap`, `switch`).
+- **org_device_summary** – return organization-wide device counts by type using Mist's devices summary endpoint.
+- **list_guest_authorizations** – list guest authorization records including codes, expirations, and metadata.
+- **list_site_networks** – list derived networks (subnets/VLANs) configured for a site.
+- **ping_from_device** – run a ping from a device and provide the command websocket channel for streamed output.
+- **site_port_usages** – fetch derived port usage definitions from site settings to choose the correct switch profile.
+- **acknowledge_all_alarms** – acknowledge (clear) every alarm at a site.
+- **acknowledge_alarms** – acknowledge specific alarms at a site by alarm ID list.
+- **acknowledge_alarm** – acknowledge a single alarm at a site by alarm ID.
+- **stop_site_locate_device** – stop locating an access point or switch by turning off the LED/port blink indicator.
 
 ## Prompts
 `prompts/list` will show the registered helpers you can call directly instead of crafting custom requests:
