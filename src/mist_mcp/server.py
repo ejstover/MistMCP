@@ -25,7 +25,7 @@ def get_client() -> MistClient:
 
 @mcp.tool()
 def find_device(identifier: str, site_id: Optional[str] = None) -> dict:
-    """Find devices by IP address, MAC address, or hostname."""
+    """Search inventory for devices by IP, MAC, or hostname and return match details."""
 
     client = get_client()
     resolved_site = site_id or client.config.default_site_id
@@ -34,7 +34,7 @@ def find_device(identifier: str, site_id: Optional[str] = None) -> dict:
 
 @mcp.tool()
 def find_client(identifier: str, site_id: Optional[str] = None) -> dict:
-    """Find clients by IP address, MAC address, or hostname."""
+    """Search connected or historical clients by IP, MAC, or hostname for a site or the org."""
 
     client = get_client()
     resolved_site = site_id or client.config.default_site_id
@@ -43,7 +43,7 @@ def find_client(identifier: str, site_id: Optional[str] = None) -> dict:
 
 @mcp.tool()
 def list_sites(country_codes: Optional[List[str]] = None) -> dict:
-    """List Mist sites filtered by country codes when provided."""
+    """List Mist sites, optionally scoped to one or more country codes."""
 
     client = get_client()
     return tools.list_sites(client, country_codes=country_codes)
@@ -51,7 +51,7 @@ def list_sites(country_codes: Optional[List[str]] = None) -> dict:
 
 @mcp.tool()
 def sites_by_country(country_codes: Optional[List[str]] = None) -> dict:
-    """Group Mist sites by country with IDs for follow-on calls."""
+    """Group Mist sites by country, returning IDs and names for follow-on calls."""
 
     client = get_client()
     return tools.sites_by_country(client, country_codes=country_codes)
@@ -59,7 +59,7 @@ def sites_by_country(country_codes: Optional[List[str]] = None) -> dict:
 
 @mcp.tool()
 def site_device_counts(site_id: Optional[str] = None) -> dict:
-    """Count switches, APs, and other devices at a site."""
+    """Summarize device counts by type (switches, APs, gateways) for a single site."""
 
     client = get_client()
     resolved_site = site_id or client.config.default_site_id
@@ -70,7 +70,7 @@ def site_device_counts(site_id: Optional[str] = None) -> dict:
 
 @mcp.tool()
 def sites_with_recent_errors(minutes: int = 60, site_ids: Optional[List[str]] = None, country_codes: Optional[List[str]] = None) -> dict:
-    """Retrieve alarms for the provided sites within the last N minutes."""
+    """Retrieve recent alarms for specified sites or countries within a time window."""
 
     client = get_client()
     target_site_ids: List[str] = []
@@ -96,7 +96,7 @@ def sites_with_recent_errors(minutes: int = 60, site_ids: Optional[List[str]] = 
 def configure_switch_port_profile(
     site_id: str, device_id: str, port_id: str, port_profile_id: str
 ) -> dict:
-    """Apply a Mist port profile to a switch port."""
+    """Apply a port usage profile to a specific switch port (write operation)."""
 
     client = get_client()
     resolved_site = site_id or client.config.default_site_id
@@ -118,7 +118,7 @@ def switch_cable_test(
     count: int,
     site_id: Optional[str] = None,
 ) -> dict:
-    """Trigger a switch cable test (TDR) ping command on a device."""
+    """Run a switch cable test (TDR) ping from a device and return the command session."""
 
     client = get_client()
     resolved_site = site_id or client.config.default_site_id
@@ -141,7 +141,7 @@ def switch_cable_test(
 
 @mcp.tool()
 def create_site(site_data: dict) -> dict:
-    """Create a new Mist site. Requires name, country_code, timezone, and address."""
+    """Create a new Mist site with required fields like name, country_code, timezone, and address."""
 
     client = get_client()
     return tools.create_site(client, site_data=site_data)
@@ -149,7 +149,7 @@ def create_site(site_data: dict) -> dict:
 
 @mcp.tool()
 def subscription_summary() -> dict:
-    """Summarize subscriptions for the configured organization."""
+    """Summarize subscription usage and next renewal across the organization."""
 
     client = get_client()
     return tools.subscription_summary(client)
@@ -157,7 +157,7 @@ def subscription_summary() -> dict:
 
 @mcp.tool()
 def list_guest_authorizations() -> dict:
-    """List all guest authorizations in the organization."""
+    """List guest authorizations, including access codes and expiration details."""
 
     client = get_client()
     return tools.list_guest_authorizations(client)
@@ -165,7 +165,7 @@ def list_guest_authorizations() -> dict:
 
 @mcp.tool()
 def org_device_summary() -> dict:
-    """Return counts of device types across the organization."""
+    """Return organization-wide device counts broken down by type."""
 
     client = get_client()
     return tools.org_device_summary(client)
@@ -173,7 +173,7 @@ def org_device_summary() -> dict:
 
 @mcp.tool()
 def list_site_networks(site_id: Optional[str] = None) -> dict:
-    """List derived networks for a site."""
+    """List derived networks (subnets/VLANs) configured for a site."""
 
     client = get_client()
     resolved_site = site_id or client.config.default_site_id
@@ -189,7 +189,7 @@ def ping_from_device(
     count: int = 4,
     site_id: Optional[str] = None,
 ) -> dict:
-    """Trigger a ping from a device; subscribe to the device cmd stream for output."""
+    """Run a ping from a device and return the command channel for streamed output."""
 
     client = get_client()
     resolved_site = site_id or client.config.default_site_id
@@ -206,7 +206,7 @@ def ping_from_device(
 
 @mcp.tool()
 def site_port_usages(site_id: Optional[str] = None) -> dict:
-    """Return derived site port usages to help select the correct switch profile."""
+    """Return derived port usage definitions from site settings to pick a switch profile."""
 
     client = get_client()
     resolved_site = site_id or client.config.default_site_id
@@ -217,7 +217,7 @@ def site_port_usages(site_id: Optional[str] = None) -> dict:
 
 @mcp.tool()
 def list_country_codes() -> dict:
-    """List supported country codes from the Mist constants endpoint."""
+    """List supported country codes from the Mist constants catalog."""
 
     client = get_client()
     return tools.list_country_codes(client)
@@ -225,7 +225,7 @@ def list_country_codes() -> dict:
 
 @mcp.tool()
 def acknowledge_all_alarms(site_id: Optional[str] = None) -> dict:
-    """Acknowledge all alarms for a site."""
+    """Acknowledge (clear) all active alarms for a site."""
 
     client = get_client()
     resolved_site = site_id or client.config.default_site_id
@@ -236,7 +236,7 @@ def acknowledge_all_alarms(site_id: Optional[str] = None) -> dict:
 
 @mcp.tool()
 def acknowledge_alarms(site_id: Optional[str] = None, alarm_ids: List[str] = None) -> dict:
-    """Acknowledge specific alarms for a site."""
+    """Acknowledge a specific set of alarms at a site."""
 
     client = get_client()
     resolved_site = site_id or client.config.default_site_id
@@ -249,7 +249,7 @@ def acknowledge_alarms(site_id: Optional[str] = None, alarm_ids: List[str] = Non
 
 @mcp.tool()
 def acknowledge_alarm(site_id: Optional[str] = None, alarm_id: str = "") -> dict:
-    """Acknowledge a single alarm for a site."""
+    """Acknowledge one alarm at a site by alarm ID."""
 
     client = get_client()
     resolved_site = site_id or client.config.default_site_id
@@ -262,7 +262,7 @@ def acknowledge_alarm(site_id: Optional[str] = None, alarm_id: str = "") -> dict
 
 @mcp.tool()
 def list_alarm_definitions() -> dict:
-    """List definitions for supported alarm types."""
+    """List supported alarm definitions and metadata (display names, fields)."""
 
     client = get_client()
     return tools.list_alarm_definitions(client)
@@ -272,7 +272,7 @@ def list_alarm_definitions() -> dict:
 def inventory_status_summary(
     site_id: Optional[str] = None, device_types: Optional[List[str]] = None
 ) -> dict:
-    """Summarize device connectivity (connected, disconnected, in-stock) by model."""
+    """Summarize device connectivity by model, including connected/disconnected/in-stock."""
 
     client = get_client()
     resolved_site = site_id or client.config.default_site_id
