@@ -1,0 +1,12 @@
+{
+  "version": "v1",
+  "tools": {
+    "mist_call_get": { "allow": ["ReadOnly", "ReadWrite"] },
+    "mistql_observe": { "allow": ["ReadOnly", "ReadWrite"] },
+    "mist_call_write": { "allow": ["ReadWrite"], "commit_requires": ["explicit_confirm"] }
+  },
+  "scopes": {
+    "ReadOnly": { "sites": ["*"] },
+    "ReadWrite": { "sites": ["*"] }
+  }
+}
