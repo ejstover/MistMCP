@@ -9,10 +9,24 @@ from mcp.server.fastmcp import FastMCP
 
 from .client import MistClient
 from .config import MistConfig
+from .glossary import GLOSSARY
 from . import tools
 
 
 mcp = FastMCP("mist-mcp")
+
+
+@mcp.resource(
+    "resource://mist-glossary",
+    name="mist_glossary",
+    title="Juniper Mist MCP Glossary",
+    description="Canonical terms, fields, and best practices for Mist MCP usage.",
+    mime_type="application/json",
+)
+def glossary_resource() -> dict:
+    """Return the Mist MCP glossary resource."""
+
+    return GLOSSARY
 
 
 @lru_cache(maxsize=1)
