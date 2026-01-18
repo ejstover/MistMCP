@@ -9,7 +9,9 @@ Model Context Protocol (MCP) server for Juniper Mist automation. The server expo
    - `MIST_API_BASE_URL` – Mist API base URL (defaults to the public cloud)
    - `MIST_DEFAULT_SITE_ID` – optional fallback site
 2. Install dependencies: `pip install .`
-3. Run the MCP server module (Python's `-m` flag runs `src/mist_mcp/server.py`): `python -m mist_mcp.server`
+3. Run the MCP server entrypoint:
+   - Read-only server: `python servers/mist-ro`
+   - Read-write server: `python servers/mist-rw`
 
 ## Using with Claude
 To connect this MCP server to Claude Desktop:
@@ -18,16 +20,19 @@ To connect this MCP server to Claude Desktop:
    ```json
    {
      "mcpServers": {
-       "mist-mcp": {
+       "mist-ro": {
          "command": "python",
-         "args": ["-m", "mist_mcp.server"],
+         "args": ["servers/mist-ro"],
          "cwd": "/path/to/MistMCP",
          "envFile": "/path/to/MistMCP/.env"
        }
      }
    }
    ```
-3. Save the configuration and restart Claude Desktop so it loads `mist-mcp` with your environment file.
+3. Save the configuration and restart Claude Desktop so it loads `mist-ro` with your environment file.
+
+> Note: The legacy `python -m mist_mcp.server` entrypoint has been deprecated in favor of the
+> dedicated read-only (`servers/mist-ro`) and read-write (`servers/mist-rw`) servers.
 
 ## How to use the MCP server
 Once connected (for example via Claude Desktop), you can prompt the MCP server with natural language. Here are practical prompts a network engineer might use:
