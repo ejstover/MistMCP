@@ -1,17 +1,17 @@
-"""Tool implementations exposed via the MCP server."""
+"""Deprecated legacy tools module for the Mist MCP server."""
 
 from __future__ import annotations
 
-from typing import Dict, Iterable, List, Optional
-
-from .client import MistClient
+import warnings
 
 
-def find_device(client: MistClient, identifier: str, site_id: Optional[str] = None) -> Dict[str, List[dict]]:
-    """Find a device by IP address, MAC address, or hostname."""
+DEPRECATION_MESSAGE = (
+    "mist_mcp.tools is deprecated; use the dedicated servers in "
+    "servers/mist-ro or servers/mist-rw."
+)
 
-    matches = client.find_device_by_identifier(identifier, site_id=site_id)
-    return {"matches": matches}
+
+warnings.warn(DEPRECATION_MESSAGE, DeprecationWarning, stacklevel=2)
 
 
 def find_client(client: MistClient, identifier: str, site_id: Optional[str] = None) -> Dict[str, List[dict]]:
@@ -221,9 +221,5 @@ def inventory_status_summary(
             if value:
                 per_model[model][key] += 1
 
-    by_model = [
-        {"model": model, **counts}
-        for model, counts in sorted(per_model.items())
-    ]
 
-    return {"summary": overall, "by_model": by_model}
+__all__: list[str] = []

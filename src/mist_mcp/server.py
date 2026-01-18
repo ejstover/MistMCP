@@ -1,19 +1,20 @@
-"""Entry point for the Mist MCP server."""
+"""Deprecated entry point for the legacy Mist MCP server."""
 
 from __future__ import annotations
 
-from functools import lru_cache
-from typing import List, Optional
-
-from mcp.server.fastmcp import FastMCP
-
-from .client import MistClient
-from .config import MistConfig
-from .glossary import GLOSSARY
-from . import tools
+import sys
+import textwrap
+import warnings
 
 
-mcp = FastMCP("mist-mcp")
+DEPRECATION_MESSAGE = """
+The legacy all-in-one server module (mist_mcp.server) has been deprecated.
+
+Use the dedicated read-only or read-write servers instead:
+  - servers/mist-ro
+  - servers/mist-rw
+"""
+
 
 
 @mcp.resource(
@@ -437,22 +438,9 @@ def site_errors_prompt(
 ) -> List[dict]:
     """Guide the model to call the sites_with_recent_errors tool."""
 
-    return [
-        {
-            "role": "system",
-            "content": "Use the sites_with_recent_errors tool to summarize active alarms for Mist sites.",
-        },
-        {
-            "role": "user",
-            "content": (
-                "Invoke `sites_with_recent_errors` with the provided filters and report alarms grouped by site.\n"
-                f"- minutes: {minutes}\n"
-                f"- site_ids: {site_ids or 'omit to rely on country_codes or default site'}\n"
-                f"- country_codes: {country_codes or 'omit to search all sites available'}"
-            ),
-        },
-    ]
+    _emit_warning()
+    sys.stderr.write(textwrap.dedent(DEPRECATION_MESSAGE).strip() + "\n")
 
 
 if __name__ == "__main__":
-    mcp.run()
+    main()
