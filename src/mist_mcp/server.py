@@ -106,60 +106,6 @@ def sites_with_recent_errors(minutes: int = 60, site_ids: Optional[List[str]] = 
     return tools.sites_with_recent_errors(client, site_ids=target_site_ids, minutes=minutes)
 
 
-@mcp.tool()
-def configure_switch_port_profile(
-    site_id: str, device_id: str, port_id: str, port_profile_id: str
-) -> dict:
-    """Apply a Mist port profile to a switch port."""
-
-    client = get_client()
-    resolved_site = site_id or client.config.default_site_id
-    if not resolved_site:
-        raise ValueError("site_id is required when MIST_DEFAULT_SITE_ID is not set")
-    return tools.configure_switch_port_profile(
-        client,
-        site_id=resolved_site,
-        device_id=device_id,
-        port_id=port_id,
-        port_profile_id=port_profile_id,
-    )
-
-
-@mcp.tool()
-def switch_cable_test(
-    device_id: str,
-    host: str,
-    count: int,
-    site_id: Optional[str] = None,
-) -> dict:
-    """Trigger a switch cable test (TDR) ping command on a device."""
-
-    client = get_client()
-    resolved_site = site_id or client.config.default_site_id
-    if not resolved_site:
-        raise ValueError("site_id is required when MIST_DEFAULT_SITE_ID is not set")
-    if not device_id:
-        raise ValueError("device_id is required")
-    if not host:
-        raise ValueError("host is required")
-    if count <= 0:
-        raise ValueError("count must be a positive integer")
-    return tools.switch_cable_test(
-        client,
-        site_id=resolved_site,
-        device_id=device_id,
-        host=host,
-        count=count,
-    )
-
-
-@mcp.tool()
-def create_site(site_data: dict) -> dict:
-    """Create a new Mist site. Requires name, country_code, timezone, and address."""
-
-    client = get_client()
-    return tools.create_site(client, site_data=site_data)
-
 
 @mcp.tool()
 def subscription_summary() -> dict:
@@ -196,27 +142,6 @@ def list_site_networks(site_id: Optional[str] = None) -> dict:
     return tools.list_site_networks(client, site_id=resolved_site)
 
 
-@mcp.tool()
-def ping_from_device(
-    device_id: str,
-    host: str,
-    count: int = 4,
-    site_id: Optional[str] = None,
-) -> dict:
-    """Trigger a ping from a device; subscribe to the device cmd stream for output."""
-
-    client = get_client()
-    resolved_site = site_id or client.config.default_site_id
-    if not resolved_site:
-        raise ValueError("site_id is required when MIST_DEFAULT_SITE_ID is not set")
-    return tools.ping_from_device(
-        client,
-        site_id=resolved_site,
-        device_id=device_id,
-        host=host,
-        count=count,
-    )
-
 
 @mcp.tool()
 def site_port_usages(site_id: Optional[str] = None) -> dict:
@@ -236,42 +161,6 @@ def list_country_codes() -> dict:
     client = get_client()
     return tools.list_country_codes(client)
 
-
-@mcp.tool()
-def acknowledge_all_alarms(site_id: Optional[str] = None) -> dict:
-    """Acknowledge all alarms for a site."""
-
-    client = get_client()
-    resolved_site = site_id or client.config.default_site_id
-    if not resolved_site:
-        raise ValueError("site_id is required when MIST_DEFAULT_SITE_ID is not set")
-    return tools.acknowledge_all_alarms(client, site_id=resolved_site)
-
-
-@mcp.tool()
-def acknowledge_alarms(site_id: Optional[str] = None, alarm_ids: List[str] = None) -> dict:
-    """Acknowledge specific alarms for a site."""
-
-    client = get_client()
-    resolved_site = site_id or client.config.default_site_id
-    if not resolved_site:
-        raise ValueError("site_id is required when MIST_DEFAULT_SITE_ID is not set")
-    if not alarm_ids:
-        raise ValueError("alarm_ids cannot be empty")
-    return tools.acknowledge_alarms(client, site_id=resolved_site, alarm_ids=alarm_ids)
-
-
-@mcp.tool()
-def acknowledge_alarm(site_id: Optional[str] = None, alarm_id: str = "") -> dict:
-    """Acknowledge a single alarm for a site."""
-
-    client = get_client()
-    resolved_site = site_id or client.config.default_site_id
-    if not resolved_site:
-        raise ValueError("site_id is required when MIST_DEFAULT_SITE_ID is not set")
-    if not alarm_id:
-        raise ValueError("alarm_id is required")
-    return tools.acknowledge_alarm(client, site_id=resolved_site, alarm_id=alarm_id)
 
 
 @mcp.tool()
@@ -436,92 +325,6 @@ def site_device_counts_prompt(site_id: Optional[str] = None) -> List[dict]:
     ]
 
 
-@mcp.prompt(
-    title="Apply switch port profile",
-    description="Assign a Mist port profile to a switch port.",
-)
-def configure_switch_port_profile_prompt(
-    site_id: Optional[str] = None,
-    device_id: str = "",
-    port_id: str = "",
-    port_profile_id: str = "",
-) -> List[dict]:
-    """Guide the model to call the configure_switch_port_profile tool."""
-
-    return [
-        {
-            "role": "system",
-            "content": "Use the configure_switch_port_profile tool to apply the requested port usage profile.",
-        },
-        {
-            "role": "user",
-            "content": (
-                "Invoke `configure_switch_port_profile` with these parameters and confirm the resulting port settings.\n"
-                f"- site_id: {site_id or 'omit to rely on the default site id'}\n"
-                f"- device_id: {device_id or 'required switch identifier'}\n"
-                f"- port_id: {port_id or 'required switch port identifier'}\n"
-                f"- port_profile_id: {port_profile_id or 'required port profile identifier'}"
-            ),
-        },
-    ]
-
-
-@mcp.prompt(
-    title="Bounce device ports",
-    description="Bounce one or more ports on a Mist device.",
-)
-def bounce_device_port_prompt(
-    site_id: Optional[str] = None, device_id: str = "", ports: Optional[List[str]] = None
-) -> List[dict]:
-    """Guide the model to call the bounce_device_port tool."""
-
-    port_hint = ports or ["ge-0/0/0", "ge-0/0/1"]
-
-    return [
-        {
-            "role": "system",
-            "content": "Use the bounce_device_port tool to bounce one or more ports on a device.",
-        },
-        {
-            "role": "user",
-            "content": (
-                "Invoke `bounce_device_port` with these parameters and confirm the bounce request.\n"
-                f"- site_id: {site_id or 'omit to rely on the default site id'}\n"
-                f"- device_id: {device_id or 'required device identifier'}\n"
-                f"- ports: {port_hint}"
-            ),
-        },
-    ]
-
-
-@mcp.prompt(
-    title="Create Mist site",
-    description="Create a Mist site with required details.",
-)
-def create_site_prompt(site_data: Optional[dict] = None) -> List[dict]:
-    """Guide the model to call the create_site tool."""
-
-    site_hint = site_data or {
-        "name": "Site name",
-        "country_code": "US",
-        "timezone": "America/New_York",
-        "address": "123 Main St, Anytown",
-    }
-
-    return [
-        {
-            "role": "system",
-            "content": "Use the create_site tool and ensure name, country_code, timezone, and address are provided.",
-        },
-        {
-            "role": "user",
-            "content": (
-                "Invoke `create_site` with the supplied site_data and return the newly created site details.\n"
-                f"- site_data: {site_hint}"
-            ),
-        },
-    ]
-
 
 @mcp.prompt(
     title="Subscription summary",
@@ -604,75 +407,6 @@ def site_port_usages_prompt(site_id: Optional[str] = None) -> List[dict]:
         },
     ]
 
-
-@mcp.prompt(
-    title="Acknowledge all site alarms",
-    description="Acknowledge every active alarm for a site.",
-)
-def acknowledge_all_alarms_prompt(site_id: Optional[str] = None) -> List[dict]:
-    """Guide the model to call the acknowledge_all_alarms tool."""
-
-    return [
-        {
-            "role": "system",
-            "content": "Use the acknowledge_all_alarms tool to clear all alarms at the target site.",
-        },
-        {
-            "role": "user",
-            "content": (
-                "Invoke `acknowledge_all_alarms` with these parameters and confirm the outcome.\n"
-                f"- site_id: {site_id or 'omit to use the default site id when set'}"
-            ),
-        },
-    ]
-
-
-@mcp.prompt(
-    title="Acknowledge specific alarms",
-    description="Acknowledge selected alarms for a site.",
-)
-def acknowledge_alarms_prompt(site_id: Optional[str] = None, alarm_ids: Optional[List[str]] = None) -> List[dict]:
-    """Guide the model to call the acknowledge_alarms tool."""
-
-    alarm_list = alarm_ids or ["alarm-id-1", "alarm-id-2"]
-
-    return [
-        {
-            "role": "system",
-            "content": "Use the acknowledge_alarms tool to clear specific alarms and echo the ids handled.",
-        },
-        {
-            "role": "user",
-            "content": (
-                "Invoke `acknowledge_alarms` with these parameters and list which alarms were acknowledged.\n"
-                f"- site_id: {site_id or 'omit to use the default site id when available'}\n"
-                f"- alarm_ids: {alarm_list}"
-            ),
-        },
-    ]
-
-
-@mcp.prompt(
-    title="Acknowledge a single alarm",
-    description="Acknowledge one alarm for a site.",
-)
-def acknowledge_alarm_prompt(site_id: Optional[str] = None, alarm_id: str = "") -> List[dict]:
-    """Guide the model to call the acknowledge_alarm tool."""
-
-    return [
-        {
-            "role": "system",
-            "content": "Use the acknowledge_alarm tool to clear a single alarm and confirm the result.",
-        },
-        {
-            "role": "user",
-            "content": (
-                "Invoke `acknowledge_alarm` with these parameters and report the acknowledgment status.\n"
-                f"- site_id: {site_id or 'omit to use the default site id when configured'}\n"
-                f"- alarm_id: {alarm_id or 'required alarm identifier'}"
-            ),
-        },
-    ]
 
 
 @mcp.prompt(

@@ -83,48 +83,6 @@ def sites_with_recent_errors(client: MistClient, site_ids: Iterable[str], minute
     return {"alarms": results}
 
 
-def configure_switch_port_profile(
-    client: MistClient,
-    site_id: str,
-    device_id: str,
-    port_id: str,
-    port_profile_id: str,
-) -> Dict[str, dict]:
-    """Apply a Mist port profile to a switch port."""
-
-    updated_port = client.update_switch_port_config(
-        site_id=site_id, device_id=device_id, port_id=port_id, usage_id=port_profile_id
-    )
-    return {"site_id": site_id, "device_id": device_id, "port_id": port_id, "port": updated_port}
-
-
-def bounce_device_port(
-    client: MistClient,
-    site_id: str,
-    device_id: str,
-    ports: Iterable[str],
-) -> Dict[str, object]:
-    """Bounce one or more switch ports on a device."""
-
-    port_list = [port for port in ports if port]
-    if not port_list:
-        raise ValueError("ports cannot be empty")
-
-    result = client.bounce_device_port(site_id=site_id, device_id=device_id, ports=port_list)
-    return {"site_id": site_id, "device_id": device_id, "ports": port_list, "result": result}
-
-
-def create_site(client: MistClient, site_data: Dict[str, object]) -> Dict[str, dict]:
-    """Create a Mist site after verifying required fields are present."""
-
-    required_fields = ["name", "country_code", "timezone", "address"]
-    missing = [field for field in required_fields if not site_data.get(field)]
-    if missing:
-        raise ValueError(f"Missing required site fields: {', '.join(missing)}")
-
-    new_site = client.create_site(site_data)
-    return {"site": new_site}
-
 
 def subscription_summary(client: MistClient) -> Dict[str, object]:
     """Summarize organization subscriptions and return raw details."""
@@ -201,48 +159,6 @@ def list_country_codes(client: MistClient) -> Dict[str, List[dict]]:
     countries = client.list_country_codes()
     return {"countries": countries}
 
-
-def acknowledge_all_alarms(client: MistClient, site_id: str) -> Dict[str, object]:
-    """Acknowledge all alarms at a site."""
-
-    result = client.acknowledge_all_site_alarms(site_id)
-    return {"site_id": site_id, "result": result}
-
-
-def acknowledge_alarms(client: MistClient, site_id: str, alarm_ids: Iterable[str]) -> Dict[str, object]:
-    """Acknowledge multiple alarms at a site."""
-
-    result = client.acknowledge_site_alarms(site_id, alarm_ids)
-    return {"site_id": site_id, "alarm_ids": list(alarm_ids), "result": result}
-
-
-def acknowledge_alarm(client: MistClient, site_id: str, alarm_id: str) -> Dict[str, object]:
-    """Acknowledge a single alarm at a site."""
-
-    result = client.acknowledge_site_alarm(site_id, alarm_id)
-    return {"site_id": site_id, "alarm_id": alarm_id, "result": result}
-
-
-def switch_cable_test(
-    client: MistClient,
-    site_id: str,
-    device_id: str,
-    host: str,
-    count: int,
-) -> Dict[str, object]:
-    """Trigger a switch cable test (TDR) ping command and return session metadata."""
-
-    result = client.run_switch_cable_test(site_id=site_id, device_id=device_id, host=host, count=count)
-    channel = f"/sites/{site_id}/devices/{device_id}/cmd"
-    return {
-        "site_id": site_id,
-        "device_id": device_id,
-        "host": host,
-        "count": count,
-        "session": result.get("session"),
-        "ws_channel": channel,
-        "response": result,
-    }
 
 
 def inventory_status_summary(
