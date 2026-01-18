@@ -89,6 +89,11 @@ Once connected (for example via Claude Desktop), you can prompt the MCP server w
 - **site_errors_prompt** – calls `sites_with_recent_errors`. Inputs: `minutes` window plus optional `site_ids` array or `country_codes`.
 - **locate_device_prompt** – calls `locate_device`. Inputs: optional `site_id` and required `device_id`.
 
+## Resources
+`resources/list` will show the registered static references you can read directly:
+
+- **resource://mist-glossary** – Juniper Mist MCP glossary of canonical entities, identifiers, fields, endpoint hints, and best practices.
+
 ## Design notes
 - Requests are routed through a tiny Mist client wrapper that handles authentication and optional site defaults.
 - Write operations (like applying a port profile or creating a site) rely on Mist REST API PUT/POST endpoints.
