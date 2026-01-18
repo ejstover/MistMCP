@@ -145,6 +145,10 @@ ENV/
 env.bak/
 venv.bak/
 
+# Dev auth artifacts
+dev_jwks.json
+dev_private.pem
+
 # Spyder project settings
 .spyderproject
 .spyproject

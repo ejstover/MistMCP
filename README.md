@@ -1,105 +1,142 @@
-# Mist MCP
+# Mist MCP Gateway (Dual-Auth + RBAC Demo)
 
-Model Context Protocol (MCP) server for Juniper Mist automation. The server exposes tools to search for devices, answer site questions, and apply specific port profiles to switch ports using the Mist API. Environment variables are loaded from a `.env` file so credentials are not stored in code.
+This repository demonstrates a minimal, production-minded MCP gateway with **dual authentication modes**, **strict RBAC**, and an example **read-only Mist MCP server**. It is designed for pilots and homelab usage where read-only is the default and writes are explicitly gated.
 
-## Quick start
-1. Copy `.env.example` to `.env` and fill in your Mist API values:
-   - `MIST_API_TOKEN` – personal access token
-   - `MIST_ORG_ID` – organization ID to query
-   - `MIST_API_BASE_URL` – Mist API base URL (defaults to the public cloud)
-   - `MIST_DEFAULT_SITE_ID` – optional fallback site
-2. Install dependencies: `pip install .`
-3. Run the MCP server entrypoint:
-   - Read-only server: `python servers/mist-ro`
-   - Read-write server: `python servers/mist-rw`
+## Architecture overview
 
-## Using with Claude
-To connect this MCP server to Claude Desktop:
-1. Complete the quick start steps and ensure `.env` contains your Mist credentials.
-2. Open Claude Desktop settings and add a new MCP server entry pointing to this project. A JSON example for `claude_desktop_config.json`:
-   ```json
-   {
-     "mcpServers": {
-       "mist-ro": {
-         "command": "python",
-         "args": ["servers/mist-ro"],
-         "cwd": "/path/to/MistMCP",
-         "envFile": "/path/to/MistMCP/.env"
-       }
-     }
-   }
+```
+Browser → FastAPI gateway (MCP client) → model stub → MCP servers (mist-ro)
+```
+
+Key features:
+- **Dual Auth Modes**
+  - **DEV**: locally signed RS256 JWTs using a local JWKS file.
+  - **OIDC**: verify JWTs from an existing IdP via JWKS (Azure AD, Okta, Ping, Auth0, Keycloak).
+- **Role mapping** to exactly two roles: `ReadOnly` / `ReadWrite`.
+- **Server-side RBAC** with allow/deny, dry-run default, and commit gating.
+- **Structured audit logs** for every tool call.
+- **Read-only MCP server** (`servers/mist-ro`) with sample tools/resources/prompts.
+
+## Repo layout
+
+```
+.
+├─ README.md
+├─ .env.example
+├─ commons/
+│  ├─ jwks_cache.py
+│  └─ logging_conf.py
+├─ gateway/
+│  ├─ main.py
+│  ├─ settings.py
+│  ├─ auth.py
+│  ├─ rbac.py
+│  ├─ policy_rbac.json
+│  ├─ mcp_client.py
+│  ├─ rbac_prompt.txt
+│  └─ tests/
+│     └─ test_rbac.py
+└─ servers/
+   ├─ mist-ro/
+   │  ├─ server.py
+   │  ├─ tools.py
+   │  ├─ resources.py
+   │  ├─ prompts.py
+   │  ├─ caching.py
+   │  ├─ settings.py
+   │  └─ requirements.txt
+   └─ mist-rw/
+      ├─ server.py
+      ├─ tools.py
+      ├─ resources.py
+      ├─ prompts.py
+      ├─ caching.py
+      ├─ settings.py
+      └─ requirements.txt
+```
+
+## Quickstart (DEV mode)
+
+1. **Create a virtualenv**
+   ```bash
+   python -m venv .venv
+   source .venv/bin/activate
    ```
-3. Save the configuration and restart Claude Desktop so it loads `mist-ro` with your environment file.
+2. **Install dependencies**
+   ```bash
+   pip install -r servers/mist-ro/requirements.txt
+   pip install -r servers/mist-rw/requirements.txt
+   pip install fastapi uvicorn httpx PyJWT pydantic pydantic-settings cryptography
+   ```
+3. **Create a .env**
+   ```bash
+   cp .env.example .env
+   ```
+4. **Generate a dev JWKS**
+   ```bash
+   python scripts/gen_dev_jwks.py
+   ```
+5. **Run the gateway**
+   ```bash
+   uvicorn gateway.main:app --reload
+   ```
+6. **Mint a dev token**
+   ```bash
+   curl -X POST http://localhost:8000/auth/dev/mint \
+     -H 'Content-Type: application/json' \
+     -d '{"sub":"user-1","email":"user@example.com","roles":["ReadOnly"],"ttl":900}'
+   ```
+7. **Call /whoami and /mcp/chat**
+   ```bash
+   curl http://localhost:8000/whoami -H "Authorization: Bearer <token>"
+   curl -X POST http://localhost:8000/mcp/chat \
+     -H 'Content-Type: application/json' \
+     -H "Authorization: Bearer <token>" \
+     -d '{"message":"hello"}'
+   ```
 
-> Note: The legacy `python -m mist_mcp.server` entrypoint has been deprecated in favor of the
-> dedicated read-only (`servers/mist-ro`) and read-write (`servers/mist-rw`) servers.
+## Quickstart (OIDC mode with existing IdP)
 
-## How to use the MCP server
-Once connected (for example via Claude Desktop), you can prompt the MCP server with natural language. Here are practical prompts a network engineer might use:
+1. Set the following in `.env`:
+   - `MODE_AUTH=oidc`
+   - `OIDC_JWKS_URL` (e.g., `https://login.microsoftonline.com/<tenant>/discovery/v2.0/keys`)
+   - `OIDC_ISSUER` (e.g., `https://login.microsoftonline.com/<tenant>/v2.0`)
+   - `JWT_AUDIENCE=mcp-gateway`
+   - `ROLE_CLAIM=roles` (or `groups` / `scp` depending on IdP)
+   - `ROLE_MAP_JSON='{"ReadOnly":["ReadOnly"],"ReadWrite":["ReadWrite"]}'`
+2. Obtain an access token from your IdP.
+3. Call the gateway:
+   ```bash
+   curl http://localhost:8000/whoami -H "Authorization: Bearer <token>"
+   ```
 
-- Inventory lookups
-  - "Find the device with IP `10.10.5.12` and tell me its hostname and site."
-  - "Search for MAC `b8:27:eb:12:34:56` and include the serial number."
-  - "Locate hostname `core-switch-3` in the org and show the model."
-  - "Find the client using IP `10.0.0.150` and tell me which AP it is on."
-  - "Who is using MAC `aa:bb:cc:dd:ee:ff` right now and what site are they at?"
-  - "Look up the wireless client named `lab-laptop-01` and include VLAN and AP details."
-  - "How many APs are connected today, how many are offline, and how many are still in-stock (never connected)? Include counts by model."
-- Site insights
-  - "List all sites in Germany and the Netherlands."
-  - "How many switches and APs are at the site `HQ-Berlin`?"
-  - "Which sites in the last 30 minutes have alarms or errors?"
-- Change management (write actions)
-  - "On switch `00:11:22:33:44:55`, apply port profile `AP-Uplink` to port `ge-0/0/5`."
-  - "Run a switch cable test for host `192.0.2.10` with 4 pings on device `00000000-0000-0000-1000-5c5b350e0060`."
-  - "Create a new site named `Remote-Branch-42` in country code `US` with timezone `America/New_York` and address `123 Main St, Springfield`."
-  - "Stop locating device `ap-1` once the on-site tech has found it."
-- Subscriptions
-  - "Summarize our subscriptions—totals, used, available, and the next renewal date."
-  - "List every subscription SKU with counts and usage."
+## RBAC behavior
 
-> Tip: Include site IDs or names when you want to scope results. The tools are read-only except where explicitly noted (port profile updates and site creation).
+- **Roles**: `ReadOnly` or `ReadWrite` only.
+- **Dry-run default**: all tools run in dry-run unless `commit=true`.
+- **Commit gating**: requires `ReadWrite` **and** explicit confirmation (`confirmation` field).
+- **Site scope**: enforced via `SITE_SCOPE_JSON`.
 
-## Tools
-- **find_device** – search inventory by IP address, MAC address, or hostname. Optionally limit to a site.
-- **find_client** – search connected or historical clients by IP address, MAC address, or hostname across both wired and wireless endpoints. Optionally limit to a site.
-- **list_sites** – list sites, optionally filtered by country codes.
-- **sites_by_country** – group sites by country code, returning site IDs and names to drive follow-on calls.
-- **site_device_counts** – summarize device counts (switches, APs, etc.) for a site.
-- **sites_with_recent_errors** – return alarms for one or more sites within the last N minutes.
-- **configure_switch_port_profile** – apply a specific port profile to a switch port on a device.
-- **switch_cable_test** – trigger a switch cable test (TDR) by issuing a ping command; includes the websocket channel for streaming results.
-- **create_site** – provision a new Mist site (requires `name`, `country_code`, `timezone`, and `address`).
-- **subscription_summary** – report subscription counts, usage, next renewal, and raw subscription details.
-- **inventory_status_summary** – report total, connected, disconnected, and in-stock device counts by model. Accepts optional `site_id` and `device_types` (e.g., `ap` or `switch`).
-- **org_device_summary** – summarize organization-wide device counts (APs, switches, gateways, edges) via Mist's devices summary endpoint.
-- **list_guest_authorizations** – list all guest authorizations in the org.
-- **list_site_networks** – list derived networks for a site.
-- **ping_from_device** – trigger a ping from a device. Results are streamed over the device command websocket channel.
-- **site_port_usages** – fetch derived port usages from site settings to choose the correct switch profile.
-- **acknowledge_all_alarms** – acknowledge every alarm at a site.
-- **acknowledge_alarms** – acknowledge multiple specified alarms at a site.
-- **acknowledge_alarm** – acknowledge a specific alarm at a site.
-- **stop_site_locate_device** – stop locating an access point or switch by turning off LED or port blinking.
+## Write server (mist-rw)
 
-## Prompts
-`prompts/list` will show the registered helpers you can call directly instead of crafting custom requests:
+Write operations now live in `servers/mist-rw` and require `MIST_TOKEN_RW`. This separation keeps read-only operations isolated in `servers/mist-ro` while preserving functionality for write workflows such as switch port changes, site creation, and alarm acknowledgments.
 
-- **inventory_overview_prompt** – calls `inventory_status_summary`. Inputs: optional `site_id` and `device_types` (list such as `["ap", "switch"]`).
-- **device_lookup_prompt** – calls `find_device`. Inputs: `identifier` (IP, MAC, or hostname) and optional `site_id`.
-- **client_lookup_prompt** – calls `find_client`. Inputs: `identifier` (IP, MAC, or hostname) and optional `site_id`.
-- **list_sites_prompt** – calls `list_sites`. Inputs: optional `country_codes` array (e.g., `["DE", "NL"]`).
-- **sites_by_country_prompt** – calls `sites_by_country`. Inputs: optional `country_codes` array (e.g., `["US", "CA"]`).
-- **bounce_device_port_prompt** – calls `bounce_device_port`. Inputs: optional `site_id`, required `device_id`, and ports list (e.g., `["ge-0/0/0"]`).
-- **site_errors_prompt** – calls `sites_with_recent_errors`. Inputs: `minutes` window plus optional `site_ids` array or `country_codes`.
-- **locate_device_prompt** – calls `locate_device`. Inputs: optional `site_id` and required `device_id`.
+## Security notes
 
-## Resources
-`resources/list` will show the registered static references you can read directly:
+- Short JWT TTLs recommended.
+- JWKS is cached with TTL and background refresh.
+- Secrets (Authorization headers, tokens) are masked in logs.
+- Mist tokens are never exposed to the browser; the MCP server reads `MIST_TOKEN_RO` from env.
 
-- **resource://mist-glossary** – Juniper Mist MCP glossary of canonical entities, identifiers, fields, endpoint hints, and best practices.
+## Environment variables
 
-## Design notes
-- Requests are routed through a tiny Mist client wrapper that handles authentication and optional site defaults.
-- Write operations (like applying a port profile or creating a site) rely on Mist REST API PUT/POST endpoints.
-- Additional tools can be layered onto the same `FastMCP` server in the future.
+See `.env.example` for the full list, including:
+- `MODE_AUTH`, `WRITE_ENABLED`, `JWT_AUDIENCE`, `JWT_ISSUER`, `DEV_JWKS_PATH`
+- `OIDC_JWKS_URL`, `OIDC_ISSUER`
+- `ROLE_CLAIM`, `ROLE_MAP_JSON`, `SITE_SCOPE_JSON`
+- `MIST_API_BASE`, `MIST_ORG_ID`, `MIST_TOKEN_RO`
+- `MIST_TOKEN_RW`
+
+## Notes on the MCP gateway
+
+The gateway includes a **stub model** that can be swapped for a real provider. The MCP client is a minimal placeholder intended to demonstrate audit logging and RBAC enforcement. When integrating a real model, wire tool calls through a proper MCP client implementation and keep the audit logging structure intact.
